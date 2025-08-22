@@ -18,7 +18,7 @@ const HomePage = () => {
             Repositorio Oficial
           </a>
           <a
-            href="https://github.com/DanielPerezL/PlayButton"
+            href="https://github.com/DanielPerezL/PlayButton/blob/main/INSTALL.md"
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-lg btn-outline-primary"
@@ -28,7 +28,7 @@ const HomePage = () => {
         </div>
         <div className="d-flex justify-content-center mb-5">
           <a
-            href="https://github.com/DanielPerezL/PlayButton"
+            href="https://github.com/DanielPerezL/PlayButton/releases/latest"
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-lg btn-success text-white"
