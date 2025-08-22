@@ -1,0 +1,15 @@
+.top-nav {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+.logo-img {
+  height: 40px;
+}
+
+.icon-img {
+  height: 30px;
+}

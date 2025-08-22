@@ -1,0 +1,20 @@
+/* AccessMenu.css o global.css */
+
+.login-grid {
+    display: grid;
+    place-items: center;
+    min-height: 100vh;
+    padding: 1rem;
+    background: linear-gradient(135deg, #0F4C4B, #1B7A78);
+}
+
+.access-menu {
+    display: grid;
+    gap: 1rem;
+    width: 100%;
+    max-width: 400px;
+    padding: 2rem;
+    border-radius: 12px;
+    background-color: white;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}

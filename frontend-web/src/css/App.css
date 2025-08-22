@@ -1,0 +1,46 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+
+body {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) var(--light);
+}
+
+h1, h2, h3 {
+  font-weight: 600;
+  color: var(--dark);
+}
+
+button, .btn {
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+button:hover, .btn:hover {
+  filter: brightness(1.05);
+}
+
+/* Formulario base */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Inputs */
+input {
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+}
+
+/* Responsive helpers */
+@media (max-width: 576px) {
+  .access-menu {
+      padding: 1.5rem;
+  }
+}
