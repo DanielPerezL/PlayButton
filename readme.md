@@ -20,8 +20,8 @@
 ## 🚀 Tecnologías utilizadas
 
 - **Backend**: Python + Flask + SQLAlchemy (MySQL)
-- **Frontend Web**: React + Bootstrap + JS
-- **Frontend Móvil**: React Native (Expo) + TS
+- **Frontend Web**: React + Bootstrap + TS
+- **Frontend Móvil**: React Native (Expo) + JS
 
 ---
 
