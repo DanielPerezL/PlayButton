@@ -3,7 +3,7 @@
 **PlayButton** es una plataforma de **streaming privado** que combina un **backend** centralizado con dos frontends complementarios:
 
 - 🌐 **Aplicación web**: incluye la **landing page pública** y un **panel de administración** para gestionar usuarios y canciones.
-- 📱 **Aplicación móvil**: cliente para Android que se conecta a tu servidor PlayButton, ofreciendo diveros modo de reproducción.
+- 📱 **Aplicación móvil**: cliente para Android que se conecta a tu servidor PlayButton, ofreciendo diversos modo de reproducción.
 
 ---
 
