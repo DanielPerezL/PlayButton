@@ -89,5 +89,18 @@ La app móvil requiere HTTPS; no permite conexiones HTTP. Recomendaciones para a
 
 ---
 
+## 🔒 Seguridad y Mantenimiento
+
+Se recomiendan las siguientes prácticas para garantizar la disponibilidad y seguridad de PlayButton:
+
+- El servicio que lanza el contenedor de **PlayButton** está configurado con `restart: always` para mantenerse activo automáticamente.
+- El servicio **cloudflared** mantiene el túnel seguro siempre activo.
+- Un servicio adicional comprueba y actualiza `cloudflared` al arrancar el sistema.
+- Se utiliza un **cron diario** para reiniciar el contenedor y garantizar estabilidad prolongada.
+
+---
+
 ¡Enhorabuena! 🎉
-Tu servidor **PlayButton** está listo para reproducir música desde la app móvil y web.
+Tu servidor **PlayButton** está listo para el uso por parte de todos los miembros de la comunidad.
+
+> ⚠️ **Recuerda:** Cada administrador es responsable de los archivos de audio almacenados en su propio servidor. Asegúrate de cumplir con la legalidad y los derechos de autor correspondientes.
