@@ -17,7 +17,16 @@ import { AlertProvider } from "./services/alertContext";
 import ConfigScreen from "./screens/ConfigScreen";
 
 const App = () => {
-  const [logged, setLogged] = useState(isLoggedIn());
+  const [logged, setLogged] = useState(false);
+  const Drawer = createDrawerNavigator();
+
+  useEffect(() => {
+    const checkLogin = async () => {
+      const stored = await isLoggedIn();
+      setLogged(stored);
+    };
+    checkLogin();
+  }, []);
 
   useEffect(() => {
     clearPlaylistCache();
@@ -29,8 +38,6 @@ const App = () => {
     await logout();
     setLogged(false);
   };
-
-  const Drawer = createDrawerNavigator();
 
   useEffect(() => {
     const handleAuthChange = (status) => {

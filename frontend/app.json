@@ -3,7 +3,7 @@
     "name": "PlayButton",
     "orientation": "portrait",
     "slug": "play-button",
-    "version": "0.4.6a",
+    "version": "0.4.6b",
     "extra": {
       "eas": {
         "projectId": "3d2db851-07db-40ff-8734-dc311f12e721"
@@ -15,7 +15,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.zice.playbutton",
-      "versionCode": 7
+      "versionCode": 8
     }
   }
 }
