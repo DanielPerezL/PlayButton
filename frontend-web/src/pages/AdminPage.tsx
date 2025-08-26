@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { isLoggedIn, login, logout } from "../services/apiService";
+import { isLoggedIn, isLoggedUserAdmin, login, logout } from "../services/apiService";
 import LoginMenu from "../components/LoginMenu";
 import { authEvents } from "../events/authEvents";
 import { toast } from "react-toastify";
@@ -8,6 +8,7 @@ import CancionesList from "../components/CancionesList";
 import SugerenciasList from "../components/SugerenciasList";
 import NeedConfirmButton from "../components/NeedConfirmButton";
 import { useNavigate } from "react-router-dom";
+import UserPage from "./UserPage";
 
 type Entity = "usuarios" | "canciones" | "sugerencias";
 
@@ -57,6 +58,10 @@ const AdminPage: React.FC = () => {
         </div>
       </main>
     );
+  }
+
+  if(!isLoggedUserAdmin()){
+    return <UserPage/>
   }
 
   return (

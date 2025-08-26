@@ -27,6 +27,10 @@ export const getToken = (): string | null => {
   return localStorage.getItem("access_token");
 };
 
+export const isLoggedUserAdmin = (): boolean => {
+  return getLoggedUserId() === "1";
+};
+
 export const login = async (
   username: string,
   password: string
@@ -54,10 +58,6 @@ export const login = async (
   }
 
   const responseData: LoginResponse = await response.json();
-
-  if (!responseData || !responseData.is_admin) {
-    throw new Error("No tienes permisos de administrador");
-  }
 
   localStorage.setItem("isLoggedIn", "true");
   localStorage.setItem("loggedUserId", responseData.user_id);
