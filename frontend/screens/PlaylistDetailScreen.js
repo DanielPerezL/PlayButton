@@ -46,7 +46,7 @@ const PlaylistDetailScreen = () => {
   const fetchSongs = async (forceRefresh = false) => {
     try {
       const userId = await getLoggedUserId();
-      const isOwnerUser = userId === playlist.user_id || getIsAdmin();
+      const isOwnerUser = userId === playlist.user_id || (await getIsAdmin());
       setIsOwner(isOwnerUser);
 
       if (!forceRefresh && isOwnerUser) {

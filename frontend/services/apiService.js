@@ -86,8 +86,9 @@ export const login = async (nickname, password) => {
     const data = await response.json();
     await AsyncStorage.setItem("access_token", data.access_token);
     await AsyncStorage.setItem("isLoggedIn", "true");
-    // Tambien se recibe data.is_admin (para poder actuar sobre todos los recursos)
     await AsyncStorage.setItem("loggedUserId", String(data.user_id));
+
+    // Tambien se recibe data.is_admin (para poder actuar sobre todos los recursos)
     await setIsAdmin(data.is_admin || false);
     if (data.is_admin) {
       showAlertOutsideReact(
