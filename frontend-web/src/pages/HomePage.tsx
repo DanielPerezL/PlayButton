@@ -28,7 +28,7 @@ const HomePage = () => {
         </div>
         <div className="d-flex justify-content-center mb-5">
           <a
-            href="https://github.com/DanielPerezL/PlayButton/releases/latest"
+            href="https://play.google.com/store/apps/details?id=com.zice.playbutton"
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-lg btn-success text-white"
