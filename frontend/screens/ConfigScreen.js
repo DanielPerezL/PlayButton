@@ -5,6 +5,7 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  Linking,
 } from "react-native";
 import Constants from "expo-constants";
 import Colors from "../services/colors";
@@ -13,36 +14,55 @@ import { useAlert } from "../services/alertContext";
 
 const ConfigScreen = () => {
   const { showAlert } = useAlert();
-
   const [apiUrl, setApiUrl] = useState("");
 
   useEffect(() => {
-    (async () => {
+    const fetchApiUrl = async () => {
       const url = await getApiBaseUrl();
       setApiUrl(url);
-    })();
+    };
+
+    fetchApiUrl();
   }, []);
 
   const onPressItem = (item) => {
-    if (item.msg) {
-      showAlert(item.msg.title, item.msg.body);
+    if (!item.msg) return;
+
+    const alertConfig = {
+      title: item.msg.title,
+      body: item.msg.body,
+    };
+
+    if (item.msg.link) {
+      alertConfig.buttons = [
+        { text: "Cerrar", style: "cancel" },
+        { text: "Abrir enlace", onPress: () => Linking.openURL(item.msg.link) },
+      ];
     }
+
+    showAlert(alertConfig.title, alertConfig.body, alertConfig.buttons);
   };
 
-  const renderConfigItem = ({ item }) => (
-    <TouchableOpacity
-      onPress={() => onPressItem(item)}
-      style={styles.item}
-      activeOpacity={item.msg ? 0.6 : 1}
-    >
-      <Text style={styles.label}>{item.key}</Text>
-      <Text style={styles.value}>{item.value}</Text>
-    </TouchableOpacity>
-  );
+  const renderConfigItem = ({ item }) => {
+    const displayValue = item.value
+      ? item.value.replace(/^https?:\/\//, "")
+      : "";
 
+    return (
+      <TouchableOpacity
+        onPress={item.msg ? () => onPressItem(item) : undefined}
+        style={styles.item}
+        activeOpacity={item.msg ? 0.6 : 1}
+      >
+        <Text style={styles.label}>{item.key}</Text>
+        <Text style={styles.value}>{displayValue}</Text>
+      </TouchableOpacity>
+    );
+  };
   // Datos de configuración que se mostrarán en la pantalla
   // "key" debe ser un identificador único para cada elemento
   const configItems = [
+    //Servidor actual
     {
       key: "Servidor actual",
       value: apiUrl,
@@ -53,6 +73,22 @@ const ConfigScreen = () => {
           "cambiarla debes cerrar sesión primero.",
       },
     },
+
+    //Repo de GitHub
+    {
+      key: "Repositorio en GitHub",
+      value: "https://github.com/DanielPerezL/PlayButton",
+      msg: {
+        title: "Repositorio en GitHub",
+        body:
+          "Este es el enlace al repositorio oficial del proyecto en GitHub. " +
+          "Puedes visitarlo para ver el código fuente, contribuir o descubrir " +
+          "como desplegar tu propio servidor de PlayButton.",
+        link: "https://github.com/DanielPerezL/PlayButton",
+      },
+    },
+
+    //Versión de app
     { key: "Versión de la app", value: Constants.expoConfig.version },
   ];
 

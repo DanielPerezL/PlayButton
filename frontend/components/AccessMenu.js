@@ -21,6 +21,10 @@ const AccessMenu = ({ onLoginSuccess }) => {
   const [apiUrl, setApiUrl] = useState("");
 
   const handleLoginSubmit = async (email, password) => {
+    const url = await getApiBaseUrl();
+    console.log(url);
+    if (!url) throw new Error("Configura la URL del servidor");
+
     try {
       await login(email, password);
       onLoginSuccess();

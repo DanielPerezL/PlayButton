@@ -40,7 +40,8 @@ export const getApiBaseUrl = async () => {
 
 export const setApiBaseUrl = async (url) => {
   if (!url) {
-    return null;
+    await AsyncStorage.setItem(API_URL_KEY, "");
+    return;
   }
 
   if (PRODUCTION) {

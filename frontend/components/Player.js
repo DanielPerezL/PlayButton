@@ -260,31 +260,27 @@ const Player = ({ songs, onSongsEnd }) => {
         <TouchableOpacity onPress={playPrev}>
           <FontAwesome name="step-backward" size={28} color="#fff" />
         </TouchableOpacity>
+
         <TouchableOpacity
           onPress={togglePlayPause}
           style={styles.playPauseButton}
         >
-          <TouchableOpacity
-            onPress={togglePlayPause}
-            style={styles.playPauseButton}
-          >
-            {isLoading ? (
-              <View style={styles.playPauseButton}>
-                <ActivityIndicator size="large" color="#fff" />
-              </View>
-            ) : (
-              <FontAwesome
-                name={playbackState.state === State.Playing ? "pause" : "play"}
-                size={30}
-                color="white"
-                style={
-                  playbackState.state !== State.Playing
-                    ? { marginLeft: 4 } // corrige el centrado óptico
-                    : {}
-                }
-              />
-            )}
-          </TouchableOpacity>
+          {isLoading ? (
+            <View style={styles.playPauseButton}>
+              <ActivityIndicator size="large" color="#fff" />
+            </View>
+          ) : (
+            <FontAwesome
+              name={playbackState.state === State.Playing ? "pause" : "play"}
+              size={30}
+              color="white"
+              style={
+                playbackState.state !== State.Playing
+                  ? { marginLeft: 4 } // corrige el centrado óptico
+                  : {}
+              }
+            />
+          )}
         </TouchableOpacity>
         <TouchableOpacity onPress={playNext}>
           <FontAwesome name="step-forward" size={28} color="#fff" />
@@ -308,6 +304,7 @@ const Player = ({ songs, onSongsEnd }) => {
           ref={queueRef}
           data={songs.slice(currentSongIndex)}
           keyExtractor={(item) => item.id}
+          contentContainerStyle={{ paddingBottom: 10 }}
           renderItem={({ item, index }) => (
             <TouchableOpacity
               style={[styles.queueItem, index === 0 && styles.activeItem]}
