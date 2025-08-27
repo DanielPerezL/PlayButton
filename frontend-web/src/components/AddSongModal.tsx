@@ -22,6 +22,7 @@ const AddSongModal: React.FC<AddSongModalProps> = ({
   const [mp3File, setMp3File] = useState<File | null>(null);
   const [shownZenn, setShownZenn] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [hasCopyrightConsent, setHasCopyrightConsent] = useState(false);
 
   useEffect(() => {
     const popoverTriggerList = document.querySelectorAll(
@@ -30,11 +31,16 @@ const AddSongModal: React.FC<AddSongModalProps> = ({
     popoverTriggerList.forEach((el) => new Popover(el as HTMLElement));
   }, []);
 
-  const handleClose = () => {
+  const setDefaults = () => {
     setArtist("");
     setSong("");
     setMp3File(null);
     setShownZenn(true);
+    setHasCopyrightConsent(false);
+  };
+
+  const handleClose = () => {
+    setDefaults();
     onClose();
   };
 
@@ -42,6 +48,11 @@ const AddSongModal: React.FC<AddSongModalProps> = ({
     e.preventDefault();
     if (!mp3File) {
       toast.error("Debes seleccionar un archivo MP3");
+      return;
+    }
+
+    if (!hasCopyrightConsent) {
+      toast.error("Debes confirmar que tienes derechos sobre la canción.");
       return;
     }
 
@@ -62,10 +73,7 @@ const AddSongModal: React.FC<AddSongModalProps> = ({
       await createSong({ name: fullName, mp3: mp3File, shown_zenn: shownZenn });
       toast.success(`Canción '${fullName}' creada correctamente`);
       onSongAdded();
-      setArtist("");
-      setSong("");
-      setMp3File(null);
-      setShownZenn(true);
+      setDefaults();
       onClose();
     } catch (err: any) {
       console.error(err);
@@ -155,6 +163,22 @@ const AddSongModal: React.FC<AddSongModalProps> = ({
                     bootstrapColor="primary"
                     content={getZennModeHelp()}
                   />
+                </div>
+                <div className="mb-3">
+                  <label className="ms-1 d-flex align-items-center">
+                    <span className="me-2">
+                      <i
+                        onClick={() => setHasCopyrightConsent((prev) => !prev)}
+                        className={`bi ${
+                          hasCopyrightConsent
+                            ? "bi-check-square-fill text-primary"
+                            : "bi-square"
+                        }`}
+                      ></i>
+                    </span>
+                    Declaro que poseo los derechos necesarios para subir esta
+                    canción y que su contenido no infringe derechos de autor.
+                  </label>
                 </div>
               </div>
               <div className="modal-footer">
