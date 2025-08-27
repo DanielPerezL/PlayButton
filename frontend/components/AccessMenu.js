@@ -5,12 +5,15 @@ import {
   StyleSheet,
   TextInput,
   Modal,
+  Image,
+  Linking,
 } from "react-native";
 import LoginMenu from "./LoginMenu";
 import { getApiBaseUrl, login, setApiBaseUrl } from "../services/apiService";
 import { useAlert } from "../services/alertContext";
 import Colors from "../services/colors";
 import { useEffect, useState } from "react";
+import playbuttonLogo from "../assets/playbutton-logo.png";
 
 const AccessMenu = ({ onLoginSuccess }) => {
   const { showAlert } = useAlert();
@@ -39,8 +42,26 @@ const AccessMenu = ({ onLoginSuccess }) => {
     setShowConfig(false);
   };
 
+  const openGitHub = () => {
+    showAlert(
+      "Abrir repositorio en GitHub",
+      "En el repositorio oficial encontrarás la información para desplegar tu propio servidor de PlayButton. Esta acción abrirá el navegador del dispositivo.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Abrir",
+          onPress: async () => {
+            Linking.openURL("https://github.com/DanielPerezL/PlayButton");
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <View style={styles.container}>
+      <Image source={playbuttonLogo} style={styles.logo} resizeMode="contain" />
+
       <View style={styles.menu}>
         <Text style={styles.title}>Iniciar Sesión</Text>
 
@@ -49,8 +70,9 @@ const AccessMenu = ({ onLoginSuccess }) => {
         <TouchableOpacity
           onPress={() =>
             showAlert(
-              "Contacta con tu administrador",
-              "Necesitas una cuenta para acceder a la aplicación. Por favor, contacta con el administrador de tu servidor para crear una cuenta."
+              "¿No tienes cuenta?",
+              "Para acceder necesitas una cuenta en el servidor de tu comunidad. Contacta con el administrador de tu servidor para crearla. " +
+                "Si quieres desplegar tu propio servidor de PlayButton, encontrarás toda la información en el repositorio oficial de GitHub."
             )
           }
         >
@@ -61,6 +83,10 @@ const AccessMenu = ({ onLoginSuccess }) => {
           <Text style={[styles.link, { marginTop: 10 }]}>
             Configurar servidor
           </Text>
+        </TouchableOpacity>
+        <View style={styles.separator} />
+        <TouchableOpacity onPress={openGitHub}>
+          <Text style={[styles.link, { marginTop: 10 }]}>Ver en GitHub</Text>
         </TouchableOpacity>
       </View>
 
@@ -122,6 +148,19 @@ const styles = StyleSheet.create({
     marginTop: 20,
     color: Colors.PRIMARY_COLOR,
     textAlign: "center",
+  },
+  logo: {
+    width: "90%",
+    maxWidth: 400,
+    maxHeight: 100,
+    alignSelf: "center",
+    marginBottom: 40,
+  },
+  separator: {
+    height: 2,
+    backgroundColor: "#444",
+    marginTop: 10,
+    width: "100%",
   },
   modalOverlay: {
     flex: 1,

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import Player from "../components/Player";
 import { useRoute } from "@react-navigation/native";
-import { fetchSongsData } from "../services/apiService";
+import { fetchSongsData, isLoggedIn } from "../services/apiService";
 import { shuffleArray } from "../services/utils";
 import Colors from "../services/colors";
 
@@ -37,11 +37,14 @@ const PlayerScreen = () => {
   };
 
   useEffect(() => {
-    if (songsOnRoute) {
-      loadPlaylistSongs();
-    } else {
-      loadGeneralSongs();
-    }
+    const initSongs = async () => {
+      if (!songsOnRoute && (await isLoggedIn())) {
+        loadGeneralSongs();
+      } else if (songsOnRoute) {
+        loadPlaylistSongs();
+      }
+    };
+    initSongs();
   }, [songsOnRoute]);
 
   return (

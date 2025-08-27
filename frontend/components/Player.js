@@ -31,6 +31,8 @@ const Player = ({ songs, onSongsEnd }) => {
   const progress = useProgress();
   const queueRef = useRef(null);
 
+  const [playerReady, setPlayerReady] = useState(false);
+
   useEffect(() => {
     const setupPlayer = async () => {
       await TrackPlayer.setupPlayer();
@@ -75,7 +77,12 @@ const Player = ({ songs, onSongsEnd }) => {
       };
     };
 
-    setupPlayer();
+    const initPlayer = async () => {
+      await setupPlayer();
+      setPlayerReady(true);
+    };
+
+    initPlayer();
   }, []);
 
   useEffect(() => {
@@ -119,13 +126,14 @@ const Player = ({ songs, onSongsEnd }) => {
   }, [songs]);
 
   useEffect(() => {
+    if (!playerReady) return;
     const prepareTrackPlayer = async () => {
       await TrackPlayer.stop();
     };
     prepareTrackPlayer();
     setCurrentSongIndex(0);
     if (songs && songs.length > 0) playMusic();
-  }, [songs]);
+  }, [songs, playerReady]);
 
   const songsEnded = async () => {
     await TrackPlayer.stop();
