@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { Popover } from "bootstrap";
 import HelpPopover from "./HelpPopover";
 import { getZennModeHelp } from "../services/utils";
+import LoadingButton from "./LoadingButton";
 
 interface AddSongModalProps {
   show: boolean;
@@ -189,13 +190,13 @@ const AddSongModal: React.FC<AddSongModalProps> = ({
                 >
                   Cancelar
                 </button>
-                <button
+                <LoadingButton
                   type="submit"
+                  loading={loading}
                   className="btn btn-outline-success"
-                  disabled={loading}
                 >
                   {loading ? "Creando..." : "Crear Canción"}
-                </button>
+                </LoadingButton>
               </div>
             </form>
           </div>

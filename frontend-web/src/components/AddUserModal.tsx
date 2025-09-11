@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { createUser } from "../services/apiService";
 import { toast } from "react-toastify";
+import LoadingButton from "./LoadingButton";
 
 interface AddUserModalProps {
   show: boolean;
@@ -101,13 +102,13 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
                 >
                   Cancelar
                 </button>
-                <button
+                <LoadingButton
                   type="submit"
+                  loading={loading}
                   className="btn btn-outline-success"
-                  disabled={loading}
                 >
                   {loading ? "Creando..." : "Crear Usuario"}
-                </button>
+                </LoadingButton>
               </div>
             </form>
           </div>
