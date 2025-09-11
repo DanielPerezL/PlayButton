@@ -4,7 +4,7 @@
     "icon": "./assets/logo.png",
     "orientation": "portrait",
     "slug": "play-button",
-    "version": "0.4.8a",
+    "version": "0.4.9",
     "extra": {
       "eas": {
         "projectId": "3d2db851-07db-40ff-8734-dc311f12e721"

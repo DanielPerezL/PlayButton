@@ -32,7 +32,7 @@ const SugerenciasScreen = () => {
       if (success) {
         showAlert(
           "Sugerencia enviada",
-          "Hemos recibido tu sugerencia correctamente. Pronto podrás encontrar esa canción en el sistema."
+          "Hemos recibido tu sugerencia correctamente. Pronto podrás encontrar esa canción en el servidor actual."
         );
         setArtistName("");
         setSongName("");

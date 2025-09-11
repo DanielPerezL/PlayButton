@@ -15,6 +15,8 @@ import PublicPlaylistsStack from "./navigation/PublicPlaylistsStack";
 import Colors from "./services/colors";
 import { AlertProvider } from "./services/alertContext";
 import ConfigScreen from "./screens/ConfigScreen";
+import PlayerStack from "./navigation/PlayerStack";
+import ConfigurationStack from "./navigation/ConfigurationStack";
 
 const App = () => {
   const [logged, setLogged] = useState(false);
@@ -89,9 +91,11 @@ const App = () => {
                 },
               }}
             >
-              <Drawer.Screen name="Reproductor">
-                {() => <PlayerScreen />}
-              </Drawer.Screen>
+              <Drawer.Screen
+                name="Reproductor"
+                component={PlayerStack}
+                options={{ headerShown: false }}
+              />
               <Drawer.Screen
                 name="Mis playlists"
                 component={UserPlaylistsStack}
@@ -104,10 +108,12 @@ const App = () => {
               />
               <Drawer.Screen
                 name="Configuración"
-                options={{ drawerItemStyle: { display: "none" } }}
-              >
-                {() => <ConfigScreen />}
-              </Drawer.Screen>
+                component={ConfigurationStack}
+                options={{
+                  headerShown: false,
+                  drawerItemStyle: { display: "none" },
+                }}
+              />
             </Drawer.Navigator>
           </NavigationContainer>
         </AuthWrapper>

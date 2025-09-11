@@ -11,8 +11,10 @@ import Constants from "expo-constants";
 import Colors from "../services/colors";
 import { getApiBaseUrl } from "../services/apiService";
 import { useAlert } from "../services/alertContext";
+import { useNavigation } from "@react-navigation/native";
 
 const ConfigScreen = () => {
+  const navigation = useNavigation();
   const { showAlert } = useAlert();
   const [apiUrl, setApiUrl] = useState("");
 
@@ -21,11 +23,15 @@ const ConfigScreen = () => {
       const url = await getApiBaseUrl();
       setApiUrl(url);
     };
-
     fetchApiUrl();
   }, []);
 
   const onPressItem = (item) => {
+    if (item.action) {
+      item.action();
+      return;
+    }
+
     if (!item.msg) return;
 
     const alertConfig = {
@@ -47,12 +53,13 @@ const ConfigScreen = () => {
     const displayValue = item.value
       ? item.value.replace(/^https?:\/\//, "")
       : "";
+    const toucheable = item.msg || item.action;
 
     return (
       <TouchableOpacity
-        onPress={item.msg ? () => onPressItem(item) : undefined}
+        onPress={toucheable ? () => onPressItem(item) : undefined}
         style={styles.item}
-        activeOpacity={item.msg ? 0.6 : 1}
+        activeOpacity={toucheable ? 0.6 : 1}
       >
         <Text style={styles.label}>{item.key}</Text>
         <Text style={styles.value}>{displayValue}</Text>
@@ -86,6 +93,13 @@ const ConfigScreen = () => {
           "como desplegar tu propio servidor de PlayButton.",
         link: "https://github.com/DanielPerezL/PlayButton",
       },
+    },
+
+    //Sugerir canciones
+    {
+      key: "Sugerencias",
+      value: "Sugerir canciones",
+      action: () => navigation.navigate("SugerenciasScreen"),
     },
 
     //Versión de app
