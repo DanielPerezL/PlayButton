@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { updateUserPassword } from "../services/apiService";
 import { toast } from "react-toastify";
 import { User } from "../interfaces";
+import LoadingButton from "./LoadingButton";
 
 interface Props {
   show: boolean;
@@ -77,13 +78,13 @@ const ChangePasswordModal: React.FC<Props> = ({ show, onClose, user }) => {
               <button className="btn btn-outline-secondary" onClick={onClose}>
                 Cancelar
               </button>
-              <button
-                className="btn btn-outline-success"
+              <LoadingButton
                 onClick={handleSubmit}
-                disabled={loading}
+                loading={loading}
+                className="btn btn-outline-success"
               >
                 {loading ? "Guardando..." : "Guardar"}
-              </button>
+              </LoadingButton>
             </div>
           </div>
         </div>
