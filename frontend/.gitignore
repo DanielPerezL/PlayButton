@@ -36,5 +36,6 @@ yarn-error.*
 *.tsbuildinfo
 
 android/
+android.bk/
 
 *.keystore
