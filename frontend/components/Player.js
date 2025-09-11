@@ -20,7 +20,6 @@ import { FontAwesome } from "@expo/vector-icons";
 import { formatTime } from "../services/utils";
 import { getSignedSongUrl, PRODUCTION } from "../services/apiService";
 import Colors from "../services/colors";
-import { play } from "react-native-track-player/lib/src/trackPlayer";
 
 const Player = ({ songs, onSongsEnd }) => {
   const [loading, setLoading] = useState(false);
