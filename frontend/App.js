@@ -6,7 +6,6 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import AuthWrapper from "./components/AuthWrapper";
 import authEventEmitter from "./events/authEvent";
-import PlayerScreen from "./screens/PlayerScreen";
 import CustomDrawerContent from "./components/CustomDrawerContent";
 import UserPlaylistsStack from "./navigation/UserPlaylistStack";
 import { SafeAreaProvider } from "react-native-safe-area-context";

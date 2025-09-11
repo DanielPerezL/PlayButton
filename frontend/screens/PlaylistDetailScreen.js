@@ -89,7 +89,7 @@ const PlaylistDetailScreen = () => {
     if (songs.length > 0) {
       navigation.navigate("Reproductor", {
         screen: "PlayerScreen",
-        params: { songs, playlist_name: playlist.name },
+        params: { songs: songs, playlist_name: playlist.name },
       });
     }
   };
