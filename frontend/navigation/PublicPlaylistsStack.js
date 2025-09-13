@@ -1,9 +1,7 @@
-import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import PublicPlaylistsScreen from "../screens/PublicPlaylistsScreen";
 import PlaylistDetailScreen from "../screens/PlaylistDetailScreen";
 import HeaderMenuButton from "../components/HeaderMenuButton";
-import { SafeAreaView } from "react-native-safe-area-context";
 import AddSongsScreen from "../screens/AddSongsScreen";
 import SugerenciasScreen from "../screens/SugerenciasScreen";
 

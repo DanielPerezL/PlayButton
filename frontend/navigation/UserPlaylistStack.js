@@ -1,11 +1,7 @@
-// navigation/UserPlaylistsStack.js
-
-import React from "react";
 import AddSongsScreen from "../screens/AddSongsScreen";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import UserPlaylistsScreen from "../screens/UserPlaylistsScreen";
 import NewPlaylistScreen from "../screens/NewPlaylistScreen";
-import { SafeAreaView } from "react-native-safe-area-context";
 import HeaderMenuButton from "../components/HeaderMenuButton";
 import PlaylistDetailScreen from "../screens/PlaylistDetailScreen";
 import SugerenciasScreen from "../screens/SugerenciasScreen";

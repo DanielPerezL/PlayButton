@@ -1,4 +1,4 @@
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+/*import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HeaderMenuButton from "../components/HeaderMenuButton";
 import PlayerScreen from "../screens/PlayerScreen";
 
@@ -25,3 +25,4 @@ const PlayerStack = () => {
 };
 
 export default PlayerStack;
+*/
