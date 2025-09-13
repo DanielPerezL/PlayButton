@@ -13,9 +13,8 @@ import HeaderMenuButton from "./components/HeaderMenuButton";
 import PublicPlaylistsStack from "./navigation/PublicPlaylistsStack";
 import Colors from "./services/colors";
 import { AlertProvider } from "./services/alertContext";
-import ConfigScreen from "./screens/ConfigScreen";
-import PlayerStack from "./navigation/PlayerStack";
 import ConfigurationStack from "./navigation/ConfigurationStack";
+import PlayerScreen from "./screens/PlayerScreen";
 
 const App = () => {
   const [logged, setLogged] = useState(false);
@@ -90,11 +89,9 @@ const App = () => {
                 },
               }}
             >
-              <Drawer.Screen
-                name="Reproductor"
-                component={PlayerStack}
-                options={{ headerShown: false }}
-              />
+              <Drawer.Screen name="Reproductor">
+                {() => <PlayerScreen />}
+              </Drawer.Screen>
               <Drawer.Screen
                 name="Mis playlists"
                 component={UserPlaylistsStack}

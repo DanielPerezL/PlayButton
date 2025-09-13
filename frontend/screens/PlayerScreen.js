@@ -7,8 +7,6 @@ import { shuffleArray } from "../services/utils";
 import Colors from "../services/colors";
 
 const PlayerScreen = () => {
-  const [refresh, setRefresh] = useState(false);
-
   const route = useRoute();
   const songsOnRoute = route.params?.songs;
   const playlistNameOnRoute = route.params?.playlist_name;
@@ -21,14 +19,12 @@ const PlayerScreen = () => {
     const generalSongs = await fetchSongsData(limit);
     setSongs(shuffleArray(generalSongs));
     setIsGeneralMode(true); // Switch to general mode
-    setRefresh((p) => !p);
   };
 
   const loadPlaylistSongs = () => {
     if (songsOnRoute) {
       setSongs(shuffleArray(songsOnRoute));
       setIsGeneralMode(false); // Switch to playlist mode
-      setRefresh((p) => !p);
     }
   };
 
@@ -60,7 +56,7 @@ const PlayerScreen = () => {
       {isGeneralMode && <Text style={styles.playlistTitle}>Modo Zen</Text>}
 
       {/* The player */}
-      <Player key={refresh} songs={songs} onSongsEnd={handleSongsEnd} />
+      <Player songs={songs} onSongsEnd={handleSongsEnd} />
 
       {/* Button to switch to general songs */}
       {!isGeneralMode && (

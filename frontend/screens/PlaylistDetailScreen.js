@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -88,8 +88,8 @@ const PlaylistDetailScreen = () => {
   const handlePlay = () => {
     if (songs.length > 0) {
       navigation.navigate("Reproductor", {
-        screen: "PlayerScreen",
-        params: { songs: songs, playlist_name: playlist.name },
+        songs: songs,
+        playlist_name: playlist.name,
       });
     }
   };
