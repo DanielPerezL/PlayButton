@@ -18,11 +18,8 @@ class SongsService():
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
     @staticmethod
-    def add_song(name, mp3_file, shown_zenn=True):
+    def add_song(name, mp3_file, shown_zenn=True, normalize=True):
         try:
-            mp3_file = request.files['mp3']
-            name = request.form['name']
-            
             # Verificar si el archivo tiene una extensión permitida
             if not SongsService.__allowed_file(mp3_file.filename):
                 raise BadRequestException()
@@ -48,19 +45,22 @@ class SongsService():
             filename = f"{new_song.id}.mp3"
 
             try:
-                # --- Preprocesado: normalización del volumen ---
-                audio = AudioSegment.from_file(mp3_file, format="mp3")
+                if normalize:
+                    # --- Preprocesado: normalización del volumen ---
+                    audio = AudioSegment.from_file(mp3_file, format="mp3")
 
-                target_dBFS = -14.0  # nivel objetivo recomendado
-                change_in_dBFS = target_dBFS - audio.dBFS
-                normalized_audio = audio.apply_gain(change_in_dBFS)
+                    target_dBFS = -14.0
+                    change_in_dBFS = target_dBFS - audio.dBFS
+                    processed_audio = audio.apply_gain(change_in_dBFS)
 
-                # Exportar a un archivo temporal normalizado
-                with tempfile.NamedTemporaryFile(delete=True, suffix=".mp3") as tmp_file:
-                    normalized_audio.export(tmp_file.name, format="mp3")
-                    tmp_file.seek(0)
-                    mp3_data = tmp_file.read()
-                    
+                    with tempfile.NamedTemporaryFile(delete=True, suffix=".mp3") as tmp_file:
+                        processed_audio.export(tmp_file.name, format="mp3")
+                        tmp_file.seek(0)
+                        mp3_data = tmp_file.read()
+                else:
+                    # Si no normalizamos, leemos el archivo directamente
+                    mp3_data = mp3_file.read()
+
                 if not mp3_data:
                     raise BadAudioFileException()
 
@@ -69,19 +69,20 @@ class SongsService():
                 mp3_record = Mp3(filename=filename, base64_data=encoded_mp3)
                 db.session.add(mp3_record)
                 db.session.commit()
-            except Exception as e:
+            except Exception:
                 db.session.rollback()
-                raise BadAudioFileException()    
+                raise BadAudioFileException()
             
             if not shown_zenn:
-                new_song.shown_zenn = False 
+                new_song.shown_zenn = False
             
             db.session.commit()
             return new_song.id
-            
+
         except Exception as e:
             db.session.rollback()
-            raise AppException()
+            raise AppException(e)
+
     
     @staticmethod
     def update_song(song_id, new_name, new_zenn):

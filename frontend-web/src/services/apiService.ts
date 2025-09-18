@@ -93,11 +93,13 @@ export const createSong = async (data: {
   name: string;
   mp3: File;
   shown_zenn?: boolean;
+  normalize?: boolean;
 }) => {
   const formData = new FormData();
   formData.append("name", data.name);
-  formData.append("mp3", data.mp3);
   formData.append("shown_zenn", data.shown_zenn ? "true" : "false");
+  formData.append("normalize", data.normalize ? "true" : "false");
+  formData.append("mp3", data.mp3);
 
   const response = await customFetch(`${BASE_URL}/songs`, {
     method: "POST",

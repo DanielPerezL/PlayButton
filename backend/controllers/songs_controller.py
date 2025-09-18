@@ -30,8 +30,9 @@ def create_song():
     mp3_file = request.files['mp3']
     name = request.form['name']
     shown_zenn = request.form.get('shown_zenn', 'true').lower() == 'true'
+    normalize = request.form.get('normalize', 'true').lower() == 'true'
     
-    id = SongsService.add_song(name, mp3_file, shown_zenn)    
+    id = SongsService.add_song(name, mp3_file, shown_zenn, normalize)    
     response = make_response()
     response.status_code = 201
 

@@ -4,7 +4,7 @@ import { createSong } from "../services/apiService";
 import { toast } from "react-toastify";
 import { Popover } from "bootstrap";
 import HelpPopover from "./HelpPopover";
-import { getZennModeHelp } from "../services/utils";
+import { getNormalizeHelp, getZennModeHelp } from "../services/utils";
 import LoadingButton from "./LoadingButton";
 
 interface AddSongModalProps {
@@ -22,6 +22,7 @@ const AddSongModal: React.FC<AddSongModalProps> = ({
   const [song, setSong] = useState("");
   const [mp3File, setMp3File] = useState<File | null>(null);
   const [shownZenn, setShownZenn] = useState(true);
+  const [normalize, setNormalize] = useState(true);
   const [loading, setLoading] = useState(false);
   const [hasCopyrightConsent, setHasCopyrightConsent] = useState(false);
 
@@ -71,7 +72,12 @@ const AddSongModal: React.FC<AddSongModalProps> = ({
 
     setLoading(true);
     try {
-      await createSong({ name: fullName, mp3: mp3File, shown_zenn: shownZenn });
+      await createSong({
+        name: fullName,
+        mp3: mp3File,
+        shown_zenn: shownZenn,
+        normalize: normalize,
+      });
       toast.success(`Canción '${fullName}' creada correctamente`);
       onSongAdded();
       setDefaults();
@@ -163,6 +169,22 @@ const AddSongModal: React.FC<AddSongModalProps> = ({
                   <HelpPopover
                     bootstrapColor="primary"
                     content={getZennModeHelp()}
+                  />
+                </div>
+                <div className="mb-3 form-check form-switch">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id="normalize"
+                    checked={normalize}
+                    onChange={(e) => setNormalize(e.target.checked)}
+                  />
+                  <label className="form-check-label" htmlFor="shownZenn">
+                    Normalizar audio
+                  </label>
+                  <HelpPopover
+                    bootstrapColor="primary"
+                    content={getNormalizeHelp()}
                   />
                 </div>
                 <div className="mb-3">
