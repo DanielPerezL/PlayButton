@@ -4,8 +4,9 @@ import { showAlertOutsideReact } from "../services/alertContext";
 
 export const PRODUCTION = !__DEV__;
 const API_URL_KEY = "API_BASE_URL";
-const MAX_RETRIES = 5;
+const MAX_RETRIES = 15;
 const RETRY_DELAY = 1200;
+const FETCH_TIMEOUT = 10000;
 
 export const getIsAdmin = async () => {
   const isAdmin = await AsyncStorage.getItem("is_admin");
@@ -432,9 +433,10 @@ export const customFetch = async (
     return response;
   }
 
-  while (attempts < maxRetries && (!response || !response.ok)) {
+  // TODO: Revisar si es se puede eliminar '|| !response.ok'
+  while (attempts < maxRetries && (response === null || !response.ok)) {
     await new Promise((res) => setTimeout(res, retryDelay));
-    response = await _customFetch(url, options);
+    response = await _customFetch(url, options, attempts);
 
     if (response === undefined) {
       return undefined;
@@ -454,34 +456,63 @@ export const customFetch = async (
   return response;
 };
 
-const _customFetch = async (url, options = {}) => {
-  if (!isLoggedIn()) {
-    return [];
-  }
+const _customFetch = async (url, options = {}, attempt = 0) => {
+  const logged = await isLoggedIn();
+  if (!logged) return undefined;
+
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
   try {
+    const token = await access_token();
     options.headers = {
       ...options.headers,
-      Authorization: `Bearer ${await access_token()}`,
+      Authorization: `Bearer ${token}`,
     };
+    options.signal = controller.signal;
+
+    //await new Promise((res) => setTimeout(res, 5000));
     const response = await fetch(url, options);
+    clearTimeout(id);
+
     if (!response.ok) {
       console.error("peticion con error: ", response.status);
       console.error(await response.text());
       if (response.status === 401 || response.status === 422) {
-        logout();
+        await logout();
         showAlertOutsideReact(
           "Sesión Expirada",
-          "Tu sesión ha expirado. Por favor inicia sesión nuevamente."
+          "Por favor inicia sesión nuevamente."
         );
-        // Retornamos undefined para que el caller detecte y no reintente
         return undefined;
-      } else if (response.status >= 500) {
-        return null;
       }
+      return null;
     }
     return response;
   } catch (error) {
     console.error("Error en customFetch:", error);
+    clearTimeout(id);
+
+    if (__DEV__) {
+      /*const message =
+      "Hubo un problema al conectar con el servidor. " +
+      (error?.name === "AbortError" ? "Timeout. " : "") +
+      "Inténtalo nuevamente.";*/
+      const message =
+        "Hubo un problema al conectar con el servidor.\n\n" +
+        "📡 Request:\n" +
+        `• URL: ${url}\n` +
+        `• Método: ${options?.method || "GET"}\n` +
+        `• Timeout: ${FETCH_TIMEOUT} ms\n` +
+        `• Intento: ${attempt} \n\n` +
+        "⚠️ Error:\n" +
+        `• Tipo: ${error?.name || "desconocido"}\n` +
+        `• Mensaje: ${error?.message || "sin mensaje"}\n\n` +
+        (error?.name === "AbortError" ? "⏱ Timeout alcanzado.\n\n" : "") +
+        "Inténtalo nuevamente.";
+
+      showAlertOutsideReact("Error de Conexión", message);
+    }
     return null;
   }
 };
