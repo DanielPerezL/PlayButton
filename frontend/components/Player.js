@@ -32,6 +32,8 @@ const Player = ({ songs, onSongsEnd }) => {
 
   const [playerReady, setPlayerReady] = useState(false);
 
+  const DEFAULT_ARTWORK = require("../assets/artwork.png");
+
   useEffect(() => {
     const setupPlayer = async () => {
       await TrackPlayer.setupPlayer();
@@ -175,6 +177,7 @@ const Player = ({ songs, onSongsEnd }) => {
       url: signedUrl,
       title: title || song.name || "Sin título",
       artist: artist || "Desconocido",
+      artwork: DEFAULT_ARTWORK,
     };
 
     try {
