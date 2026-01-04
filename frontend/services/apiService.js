@@ -541,8 +541,7 @@ const _customFetch = async (url, options = {}, attempt = 0) => {
     //console.error("Error en customFetch:", error);
     clearTimeout(id);
     if (error?.name === "AbortError") markNetworkFailure();
-    if (true) {
-      // TODO: cambiar a 'if (__DEV__)' en el futuro
+    if (__DEV__) {
       const message =
         "Hubo un problema al conectar con el servidor.\n\n" +
         "📡 Request:\n" +
