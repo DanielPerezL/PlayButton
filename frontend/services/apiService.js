@@ -4,9 +4,11 @@ import { showAlertOutsideReact } from "../services/alertContext";
 
 export const PRODUCTION = !__DEV__;
 const API_URL_KEY = "API_BASE_URL";
-const MAX_RETRIES = 15;
-const RETRY_DELAY = 1200;
+const MAX_RETRIES = 10;
+const RETRY_DELAY = 1500;
 const FETCH_TIMEOUT = 10000;
+const MAX_CONCURRENT_FETCHES = 3;
+let activeFetches = 0;
 
 export const getIsAdmin = async () => {
   const isAdmin = await AsyncStorage.getItem("is_admin");
@@ -426,34 +428,42 @@ export const customFetch = async (
   maxRetries = MAX_RETRIES,
   retryDelay = RETRY_DELAY
 ) => {
-  let attempts = 1;
-  let response = await _customFetch(url, options);
-
-  if (response === undefined) {
-    return response;
+  // Esperar si hay demasiadas solicitudes activas
+  while (activeFetches >= MAX_CONCURRENT_FETCHES) {
+    await new Promise((res) => setTimeout(res, RETRY_DELAY));
   }
 
-  // TODO: Revisar si es se puede eliminar '|| !response.ok'
-  while (attempts < maxRetries && (response === null || !response.ok)) {
-    await new Promise((res) => setTimeout(res, retryDelay));
-    response = await _customFetch(url, options, attempts);
+  activeFetches++;
+  let attempts = 1;
+  let response;
 
-    if (response === undefined) {
-      return undefined;
+  try {
+    response = await _customFetch(url, { ...options }, attempts);
+
+    if (response === undefined) return response;
+
+    while (attempts < maxRetries && response === null) {
+      await new Promise((res) => setTimeout(res, retryDelay));
+      response = await _customFetch(url, { ...options }, attempts);
+
+      if (response === undefined) return undefined;
+
+      attempts++;
+      console.warn(`Attempt ${attempts} failed.`);
     }
 
-    attempts++;
-    console.warn(`Attempt ${attempts} failed.`);
-  }
-  if (response === null) {
-    showAlertOutsideReact(
-      "Error de Conexión",
-      "Hubo un problema al conectar con el servidor. Inténtalo nuevamente."
-    );
-    return null;
-  }
+    if (response === null) {
+      showAlertOutsideReact(
+        "Error de Conexión",
+        "Hubo un problema al conectar con el servidor. Inténtalo nuevamente."
+      );
+      return null;
+    }
 
-  return response;
+    return response;
+  } finally {
+    activeFetches--; // liberar slot de fetch
+  }
 };
 
 const _customFetch = async (url, options = {}, attempt = 0) => {
@@ -503,6 +513,7 @@ const _customFetch = async (url, options = {}, attempt = 0) => {
         "📡 Request:\n" +
         `• URL: ${url}\n` +
         `• Método: ${options?.method || "GET"}\n` +
+        `• Opciones: ${JSON.stringify(options)}\n` +
         `• Timeout: ${FETCH_TIMEOUT} ms\n` +
         `• Intento: ${attempt} \n\n` +
         "⚠️ Error:\n" +
