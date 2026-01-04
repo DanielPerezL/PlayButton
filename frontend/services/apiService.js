@@ -9,6 +9,9 @@ const RETRY_DELAY = 1500;
 const FETCH_TIMEOUT = 10000;
 const MAX_CONCURRENT_FETCHES = 3;
 let activeFetches = 0;
+let consecutiveNetworkFailures = 0;
+const NETWORK_FAILURE_THRESHOLD = 3;
+let networkState = "OK"; // OK | BROKEN
 
 export const getIsAdmin = async () => {
   const isAdmin = await AsyncStorage.getItem("is_admin");
@@ -421,6 +424,33 @@ export const createSuggestion = async (songName, artistName) => {
   }
 };
 
+const waitForAllFetchesToFinish = async () => {
+  while (activeFetches > 0) {
+    await new Promise((res) => setTimeout(res, RETRY_DELAY));
+  }
+};
+
+const markNetworkFailure = async () => {
+  consecutiveNetworkFailures++;
+  console.warn(
+    `[NETWORK] failure ${consecutiveNetworkFailures}/${NETWORK_FAILURE_THRESHOLD}`
+  );
+  if (consecutiveNetworkFailures >= NETWORK_FAILURE_THRESHOLD) {
+    networkState = "BROKEN";
+    console.error("[NETWORK] Network marked as BROKEN");
+  }
+  await waitForAllFetchesToFinish();
+  markNetworkSuccess();
+};
+
+const markNetworkSuccess = () => {
+  if (networkState !== "OK") {
+    console.info("[NETWORK] Network restored");
+  }
+  consecutiveNetworkFailures = 0;
+  networkState = "OK";
+};
+
 // Custom fetch para manejar errores de token JWT
 export const customFetch = async (
   url,
@@ -428,6 +458,10 @@ export const customFetch = async (
   maxRetries = MAX_RETRIES,
   retryDelay = RETRY_DELAY
 ) => {
+  if (networkState === "BROKEN") {
+    return null;
+  }
+
   // Esperar si hay demasiadas solicitudes activas
   while (activeFetches >= MAX_CONCURRENT_FETCHES) {
     await new Promise((res) => setTimeout(res, RETRY_DELAY));
@@ -467,6 +501,9 @@ export const customFetch = async (
 };
 
 const _customFetch = async (url, options = {}, attempt = 0) => {
+  if (networkState === "BROKEN") {
+    return null;
+  }
   const logged = await isLoggedIn();
   if (!logged) return undefined;
 
@@ -484,6 +521,7 @@ const _customFetch = async (url, options = {}, attempt = 0) => {
     //await new Promise((res) => setTimeout(res, 5000));
     const response = await fetch(url, options);
     clearTimeout(id);
+    markNetworkSuccess();
 
     if (!response.ok) {
       console.error("peticion con error: ", response.status);
@@ -500,14 +538,11 @@ const _customFetch = async (url, options = {}, attempt = 0) => {
     }
     return response;
   } catch (error) {
-    console.error("Error en customFetch:", error);
+    //console.error("Error en customFetch:", error);
     clearTimeout(id);
-
-    if (__DEV__) {
-      /*const message =
-      "Hubo un problema al conectar con el servidor. " +
-      (error?.name === "AbortError" ? "Timeout. " : "") +
-      "Inténtalo nuevamente.";*/
+    if (error?.name === "AbortError") markNetworkFailure();
+    if (true) {
+      // TODO: cambiar a 'if (__DEV__)' en el futuro
       const message =
         "Hubo un problema al conectar con el servidor.\n\n" +
         "📡 Request:\n" +
