@@ -9,6 +9,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import Colors from "../services/colors";
+import { clearPlaylistCache } from "../services/apiService";
 
 const PlaylistGrid = ({ playlists, showUser, onRefreshPlaylists }) => {
   const navigation = useNavigation();
@@ -17,6 +18,7 @@ const PlaylistGrid = ({ playlists, showUser, onRefreshPlaylists }) => {
   const handleRefresh = async () => {
     setRefreshing(true);
     await onRefreshPlaylists(true);
+    await clearPlaylistCache();
     setRefreshing(false);
   };
 
