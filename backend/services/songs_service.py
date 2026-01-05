@@ -109,7 +109,7 @@ class SongsService():
             # Filtrado por nombre si se proporciona
             if name:
                 query = query.filter(Song.name.ilike(f"%{name}%"))
-                songs = query.order_by(Song.id.asc()).offset(offset).limit(limit).all()
+                songs = query.order_by(Song.id.desc()).offset(offset).limit(limit).all()
             else:
                 # Orden aleatorio si no hay filtro de nombre
                 query = query.filter(Song.shown_zenn.is_(True))
@@ -127,7 +127,7 @@ class SongsService():
             query = Song.query
             if name:
                 query = query.filter(Song.name.ilike(f"%{name}%"))
-            songs = query.order_by(Song.id.asc()).offset(offset).limit(limit).all()
+            songs = query.order_by(Song.id.desc()).offset(offset).limit(limit).all()
         
             return {
                 "songs": [song.to_detailed_dto() for song in songs],
