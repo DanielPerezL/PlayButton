@@ -43,9 +43,7 @@ const LoginMenu = ({ onSubmit }) => {
           style={styles.input}
           value={nick}
           onChangeText={setNick}
-          autoCapitalize="none"
-          keyboardType="nick-address"
-          autoComplete="nick"
+          autoComplete="username"
           onSubmitEditing={() =>
             passwordRef.current && passwordRef.current.focus()
           }
