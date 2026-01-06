@@ -43,13 +43,16 @@ export const customFetch = async (
     if (response === undefined) return response;
 
     while (attempts < maxRetries && response === null) {
+      console.warn(`Attempt ${attempts} failed.`);
+      if (!canAttemptFetch()) {
+        console.warn("[NETWORK] Retry aborted: circuit OPEN");
+        return null;
+      }
+
       await new Promise((res) => setTimeout(res, retryDelay));
       response = await _customFetch(url, { ...options }, attempts);
-
       if (response === undefined) return undefined;
-
       attempts++;
-      console.warn(`Attempt ${attempts} failed.`);
     }
 
     if (response === null) {
@@ -79,9 +82,6 @@ export const setNetworkState = (state) => {
 };
 
 const _customFetch = async (url, options = {}, attempt = 0) => {
-  if (!canAttemptFetch()) {
-    return null;
-  }
   const logged = await isLoggedIn();
   if (!logged) return undefined;
 
@@ -158,20 +158,11 @@ const canAttemptFetch = () => {
     halfOpenInFlight = true;
     return true;
   }
-
-  return false;
 };
 
 const markNetworkFailure = () => {
   consecutiveNetworkFailures++;
-
-  if (networkState === "HALF_OPEN") {
-    networkState = "OPEN";
-    openedAt = Date.now();
-    halfOpenInFlight = false;
-    console.error("[NETWORK] HALF_OPEN failed → OPEN");
-    return;
-  }
+  halfOpenInFlight = false;
 
   if (
     networkState === "CLOSED" &&
@@ -181,14 +172,17 @@ const markNetworkFailure = () => {
     openedAt = Date.now();
     console.error("[NETWORK] Circuit OPEN");
   }
+
+  if (networkState === "HALF_OPEN") {
+    networkState = "OPEN";
+    openedAt = Date.now();
+    console.error("[NETWORK] HALF_OPEN failed → OPEN");
+  }
 };
 
 const markNetworkSuccess = () => {
   consecutiveNetworkFailures = 0;
-
-  if (networkState === "HALF_OPEN") {
-    networkState = "CLOSED";
-    halfOpenInFlight = false;
-    console.info("[NETWORK] HALF_OPEN success → CLOSED");
-  }
+  halfOpenInFlight = false;
+  networkState = "CLOSED";
+  console.info("[NETWORK] Circuit CLOSED");
 };

@@ -115,6 +115,9 @@ export const getSignedSongUrl = async (songId) => {
   try {
     const baseUrl = await getApiBaseUrl();
     const response = await customFetch(`${baseUrl}/songs/${songId}/signed-url`);
+    if (!response) {
+      return null;
+    }
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -141,6 +144,8 @@ export const fetchSongsData = async (limit = 20) => {
   try {
     const baseUrl = await getApiBaseUrl();
     const response = await customFetch(`${baseUrl}/songs?limit=${limit}`);
+    if (!response) return [];
+
     const data = await response.json();
     if (data.songs && Array.isArray(data.songs)) {
       return data.songs;
@@ -207,6 +212,7 @@ export const searchSongsByName = async (name = "", offset = 0, limit = 50) => {
 
     const baseUrl = await getApiBaseUrl();
     const response = await customFetch(`${baseUrl}/songs?${queryParams}`);
+    if (!response) return { songs: [], hasMore: false };
     const data = await response.json();
 
     if (data.songs && Array.isArray(data.songs)) {
@@ -231,6 +237,7 @@ export const getPlaylistSongs = async (playlistId) => {
       `${baseUrl}/playlists/${playlistId}/songs`,
       { method: "GET" }
     );
+    if (!response) return null;
     if (!response.ok) {
       console.error(`Error fetching playlist songs: HTTP ${response.status}`);
       return null;
@@ -257,6 +264,7 @@ export const fetchUserPlaylists = async (userId) => {
     },
   });
 
+  if (!response) return [];
   if (!response.ok) {
     console.error(`Error fetching playlists: HTTP ${response.status}`);
     return [];
@@ -272,6 +280,8 @@ export const getAllPlaylists = async (offset = 0, limit = 20) => {
       `${baseUrl}/playlists?offset=${offset}&limit=${limit}`,
       { method: "GET" }
     );
+
+    if (!response) return null;
     if (!response.ok) {
       console.error(`Error fetching playlists: HTTP ${response.status}`);
       return null;
@@ -296,6 +306,7 @@ export const createPlaylist = async (userId, name, isPublic = true) => {
       body: JSON.stringify(data),
     });
 
+    if (!response) return false;
     if (!response.ok) {
       console.error(`Error creating playlist: HTTP ${response.status}`);
       return false;
@@ -314,6 +325,8 @@ export const deletePlaylist = async (playlistId) => {
     const response = await customFetch(`${baseUrl}/playlists/${playlistId}`, {
       method: "DELETE",
     });
+
+    if (!response) return false;
     if (!response.ok) {
       console.error(`Error deleting playlist: HTTP ${response.status}`);
       return false;
@@ -335,6 +348,8 @@ export const updatePlaylist = async (playlistId, newName, isPublic) => {
       },
       body: JSON.stringify({ name: newName, is_public: isPublic }),
     });
+
+    if (!response) return false;
     if (!response.ok) {
       console.error(`Error updating playlist: HTTP ${response.status}`);
       return false;
@@ -353,6 +368,8 @@ export const addSongToPlaylist = async (playlistId, songId) => {
       `${baseUrl}/playlists/${playlistId}/songs/${songId}`,
       { method: "POST" }
     );
+
+    if (!response) return false;
     if (!response.ok) {
       console.error(`Error adding song to playlist: HTTP ${response.status}`);
       return false;
@@ -371,6 +388,8 @@ export const removeSongFromPlaylist = async (playlistId, songId) => {
       `${baseUrl}/playlists/${playlistId}/songs/${songId}`,
       { method: "DELETE" }
     );
+
+    if (!response) return false;
     if (!response.ok) {
       console.error(
         `Error removing song from playlist: HTTP ${response.status}`
@@ -403,6 +422,7 @@ export const createSuggestion = async (songName, artistName) => {
       body: JSON.stringify({ song_name: fullName }),
     });
 
+    if (!response) return false;
     if (!response.ok) {
       console.error(
         `Error suggesting song "${fullName}": HTTP ${response.status}`
