@@ -18,7 +18,7 @@ import TrackPlayer, {
 import { StyleSheet } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { formatTime } from "../services/utils";
-import { getSignedSongUrl, PRODUCTION } from "../services/apiService";
+import { getSignedSongUrl } from "../services/apiService";
 import Colors from "../services/colors";
 
 const Player = ({ songs, onSongsEnd }) => {
@@ -288,7 +288,7 @@ const Player = ({ songs, onSongsEnd }) => {
           <FontAwesome name="step-forward" size={28} color="#fff" />
         </TouchableOpacity>
       </View>
-      {!PRODUCTION && (
+      {__DEV__ && (
         <Text style={{ color: Colors.PRIMARY_PASTEL_COLOR }}>
           Estado: {playbackState.state}
         </Text>

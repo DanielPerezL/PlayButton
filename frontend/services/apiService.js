@@ -3,7 +3,6 @@ import { emitLoginStatusChange } from "../events/authEvent";
 import { showAlertOutsideReact } from "../services/alertContext";
 import { customFetch } from "../services/fetchingService";
 
-export const PRODUCTION = !__DEV__;
 const API_URL_KEY = "API_BASE_URL";
 
 export const getIsAdmin = async () => {
@@ -43,7 +42,7 @@ export const setApiBaseUrl = async (url) => {
     return;
   }
 
-  if (PRODUCTION) {
+  if (!__DEV__) {
     if (!url.startsWith("https://")) {
       url = "https://" + url.replace(/^https?:\/\//, "");
     }
@@ -126,7 +125,7 @@ export const getSignedSongUrl = async (songId) => {
     const data = await response.json();
 
     if (data.mp3_url) {
-      if (PRODUCTION && data.mp3_url.startsWith("http://")) {
+      if (!__DEV__ && data.mp3_url.startsWith("http://")) {
         data.mp3_url = "https://" + data.mp3_url.slice(7); // Quitar 'http://' y agregar 'https://'
       }
       return data.mp3_url;
