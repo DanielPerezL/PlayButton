@@ -56,6 +56,6 @@ export const showAlertOutsideReact = (title, message, buttons) => {
   if (globalShowAlert) {
     globalShowAlert(title, message, buttons);
   } else {
-    console.warn("showAlert no está disponible todavía");
+    if (__DEV__) console.warn("showAlert no está disponible todavía");
   }
 };

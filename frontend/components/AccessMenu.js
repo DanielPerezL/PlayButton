@@ -22,7 +22,7 @@ const AccessMenu = ({ onLoginSuccess }) => {
 
   const handleLoginSubmit = async (email, password) => {
     const url = await getApiBaseUrl();
-    console.log(url);
+    if (__DEV__) console.log(url);
     if (!url) throw new Error("Configura la URL del servidor");
 
     try {

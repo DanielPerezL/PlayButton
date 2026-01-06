@@ -130,11 +130,11 @@ export const getSignedSongUrl = async (songId) => {
       }
       return data.mp3_url;
     } else {
-      console.error("No 'mp3_url' field in response:", data);
+      if (__DEV__) console.error("No 'mp3_url' field in response:", data);
       return null;
     }
   } catch (error) {
-    console.error("Error fetching signed song URL:", error);
+    if (__DEV__) console.error("Error fetching signed song URL:", error);
     return null;
   }
 };
@@ -149,11 +149,11 @@ export const fetchSongsData = async (limit = 20) => {
     if (data.songs && Array.isArray(data.songs)) {
       return data.songs;
     } else {
-      console.error("Invalid song data format:", data);
+      if (__DEV__) console.error("Invalid song data format:", data);
       return [];
     }
   } catch (error) {
-    console.error("Error fetching song IDs:", error);
+    if (__DEV__) console.error("Error fetching song IDs:", error);
     return [];
   }
 };
@@ -163,7 +163,7 @@ export const getCachedSongs = async (playlistId) => {
     const jsonValue = await AsyncStorage.getItem(`songs_${playlistId}`);
     return jsonValue != null ? JSON.parse(jsonValue) : null;
   } catch (e) {
-    console.error("Error reading cached songs:", e);
+    if (__DEV__) console.error("Error reading cached songs:", e);
     return null;
   }
 };
@@ -173,7 +173,7 @@ export const setCachedSongs = async (playlistId, songs) => {
     const jsonValue = JSON.stringify(songs);
     await AsyncStorage.setItem(`songs_${playlistId}`, jsonValue);
   } catch (e) {
-    console.error("Error saving songs to cache:", e);
+    if (__DEV__) console.error("Error saving songs to cache:", e);
   }
 };
 
@@ -185,7 +185,7 @@ export const clearPlaylistCache = async () => {
       await AsyncStorage.multiRemove(songKeys);
     }
   } catch (e) {
-    console.error("Error limpiando la caché:", e);
+    if (__DEV__) console.error("Error limpiando la caché:", e);
   }
 };
 
@@ -194,7 +194,7 @@ export const clearPlaylistIdCache = async (playlistId) => {
     const cacheKey = `songs_${playlistId}`;
     await AsyncStorage.removeItem(cacheKey);
   } catch (err) {
-    console.error("Error al eliminar caché de playlist:", err);
+    if (__DEV__) console.error("Error al eliminar caché de playlist:", err);
   }
 };
 
@@ -217,14 +217,15 @@ export const searchSongsByName = async (name = "", offset = 0, limit = 50) => {
     if (data.songs && Array.isArray(data.songs)) {
       return { songs: data.songs, hasMore: data.has_more };
     } else {
-      console.error(
-        "Formato de datos inválido en la búsqueda de canciones:",
-        data
-      );
+      if (__DEV__)
+        console.error(
+          "Formato de datos inválido en la búsqueda de canciones:",
+          data
+        );
       return { songs: [], hasMore: false };
     }
   } catch (error) {
-    console.error("Error buscando canciones:", error);
+    if (__DEV__) console.error("Error buscando canciones:", error);
     return { songs: [], hasMore: false };
   }
 };
@@ -238,18 +239,19 @@ export const getPlaylistSongs = async (playlistId) => {
     );
     if (!response) return null;
     if (!response.ok) {
-      console.error(`Error fetching playlist songs: HTTP ${response.status}`);
+      if (__DEV__)
+        console.error(`Error fetching playlist songs: HTTP ${response.status}`);
       return null;
     }
     const data = await response.json();
     if (data.songs && Array.isArray(data.songs)) {
       return data.songs;
     } else {
-      console.error("Invalid song data format:", data);
+      if (__DEV__) console.error("Invalid song data format:", data);
       return null;
     }
   } catch (error) {
-    console.error("Error fetching playlist songs:", error);
+    if (__DEV__) console.error("Error fetching playlist songs:", error);
     return null;
   }
 };
@@ -265,7 +267,8 @@ export const fetchUserPlaylists = async (userId) => {
 
   if (!response) return [];
   if (!response.ok) {
-    console.error(`Error fetching playlists: HTTP ${response.status}`);
+    if (__DEV__)
+      console.error(`Error fetching playlists: HTTP ${response.status}`);
     return [];
   }
   const data = await response.json();
@@ -282,13 +285,14 @@ export const getAllPlaylists = async (offset = 0, limit = 20) => {
 
     if (!response) return null;
     if (!response.ok) {
-      console.error(`Error fetching playlists: HTTP ${response.status}`);
+      if (__DEV__)
+        console.error(`Error fetching playlists: HTTP ${response.status}`);
       return null;
     }
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("Error fetching playlists:", error);
+    if (__DEV__) console.error("Error fetching playlists:", error);
     return null;
   }
 };
@@ -307,13 +311,14 @@ export const createPlaylist = async (userId, name, isPublic = true) => {
 
     if (!response) return false;
     if (!response.ok) {
-      console.error(`Error creating playlist: HTTP ${response.status}`);
+      if (__DEV__)
+        console.error(`Error creating playlist: HTTP ${response.status}`);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error("Error creating playlist:", error);
+    if (__DEV__) console.error("Error creating playlist:", error);
     return false; // En caso de error, devuelve false
   }
 };
@@ -327,12 +332,13 @@ export const deletePlaylist = async (playlistId) => {
 
     if (!response) return false;
     if (!response.ok) {
-      console.error(`Error deleting playlist: HTTP ${response.status}`);
+      if (__DEV__)
+        console.error(`Error deleting playlist: HTTP ${response.status}`);
       return false;
     }
     return true;
   } catch (error) {
-    console.error(`Error deleting playlist:`, error);
+    if (__DEV__) console.error(`Error deleting playlist:`, error);
     return false;
   }
 };
@@ -350,12 +356,13 @@ export const updatePlaylist = async (playlistId, newName, isPublic) => {
 
     if (!response) return false;
     if (!response.ok) {
-      console.error(`Error updating playlist: HTTP ${response.status}`);
+      if (__DEV__)
+        console.error(`Error updating playlist: HTTP ${response.status}`);
       return false;
     }
     return true;
   } catch (error) {
-    console.error("Error updating playlist:", error);
+    if (__DEV__) console.error("Error updating playlist:", error);
     return false;
   }
 };
@@ -370,12 +377,13 @@ export const addSongToPlaylist = async (playlistId, songId) => {
 
     if (!response) return false;
     if (!response.ok) {
-      console.error(`Error adding song to playlist: HTTP ${response.status}`);
+      if (__DEV__)
+        console.error(`Error adding song to playlist: HTTP ${response.status}`);
       return false;
     }
     return true;
   } catch (error) {
-    console.error(`Error adding song to playlist:`, error);
+    if (__DEV__) console.error(`Error adding song to playlist:`, error);
     return false;
   }
 };
@@ -390,14 +398,15 @@ export const removeSongFromPlaylist = async (playlistId, songId) => {
 
     if (!response) return false;
     if (!response.ok) {
-      console.error(
-        `Error removing song from playlist: HTTP ${response.status}`
-      );
+      if (__DEV__)
+        console.error(
+          `Error removing song from playlist: HTTP ${response.status}`
+        );
       return false;
     }
     return true;
   } catch (error) {
-    console.error("Error removing song from playlist:", error);
+    if (__DEV__) console.error("Error removing song from playlist:", error);
     return false;
   }
 };
@@ -405,7 +414,8 @@ export const removeSongFromPlaylist = async (playlistId, songId) => {
 //Crear sugerencias
 export const createSuggestion = async (songName, artistName) => {
   if (!songName || !artistName) {
-    console.error("Invalid song or artist name:", songName, artistName);
+    if (__DEV__)
+      console.error("Invalid song or artist name:", songName, artistName);
     return false;
   }
 
@@ -423,14 +433,15 @@ export const createSuggestion = async (songName, artistName) => {
 
     if (!response) return false;
     if (!response.ok) {
-      console.error(
-        `Error suggesting song "${fullName}": HTTP ${response.status}`
-      );
+      if (__DEV__)
+        console.error(
+          `Error suggesting song "${fullName}": HTTP ${response.status}`
+        );
       return false;
     }
     return true;
   } catch (error) {
-    console.error(`Error suggesting song "${fullName}":`, error);
+    if (__DEV__) console.error(`Error suggesting song "${fullName}":`, error);
     return false;
   }
 };

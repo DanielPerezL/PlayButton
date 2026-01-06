@@ -15,31 +15,8 @@ import Colors from "./services/colors";
 import { AlertProvider } from "./services/alertContext";
 import ConfigurationStack from "./navigation/ConfigurationStack";
 import PlayerScreen from "./screens/PlayerScreen";
-import NetInfo from "@react-native-community/netinfo";
-import { setNetworkState, getNetworkState } from "./services/fetchingService";
 
 const App = () => {
-  useEffect(() => {
-    const unsubscribe = NetInfo.addEventListener((state) => {
-      console.log(
-        "Connection state changed! IsConnected:",
-        state.isConnected,
-        "| isInternetReachable:",
-        state.isInternetReachable,
-        "| Type:",
-        state.type
-      );
-      if (state.isConnected && state.isInternetReachable) {
-        if (getNetworkState() === "OPEN") {
-          console.info("[NETWORK] Connectivity restored → HALF_OPEN");
-          setNetworkState("HALF_OPEN");
-        }
-      }
-    });
-
-    return () => unsubscribe(); // limpiar listener al desmontar
-  }, []);
-
   const [logged, setLogged] = useState(false);
   const Drawer = createDrawerNavigator();
 

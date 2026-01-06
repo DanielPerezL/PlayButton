@@ -27,7 +27,7 @@ const Player = ({ songs, onSongsEnd }) => {
   const [currentSong, setCurrentSong] = useState(null);
   const [isQueueVisible, setIsQueueVisible] = useState(false);
   const playbackState = usePlaybackState();
-  const progress = useProgress();
+  const progress = useProgress(1000);
   const queueRef = useRef(null);
 
   const [playerReady, setPlayerReady] = useState(false);
@@ -113,7 +113,8 @@ const Player = ({ songs, onSongsEnd }) => {
           );
           playSong(songIndex, currentPosition);
         } catch (error) {
-          console.error("Error al obtener la pista actual:", error);
+          if (__DEV__)
+            console.error("Error al obtener la pista actual:", error);
           return;
         }
       }
@@ -145,9 +146,10 @@ const Player = ({ songs, onSongsEnd }) => {
   const playSong = async (songIndex, position = 0) => {
     setLoading(true);
 
-    console.log(
-      `Reproduciendo canción en el índice: ${songIndex}, posición: ${position}`
-    );
+    if (__DEV__)
+      console.log(
+        `Reproduciendo canción en el índice: ${songIndex}, posición: ${position}`
+      );
 
     const song = songs[songIndex];
     if (!song) {
@@ -155,9 +157,10 @@ const Player = ({ songs, onSongsEnd }) => {
       return songsEnded();
     }
 
-    console.log(
-      `Reproduciendo canción: ${song.name} (ID: ${song.id}, posición: ${position})`
-    );
+    if (__DEV__)
+      console.log(
+        `Reproduciendo canción: ${song.name} (ID: ${song.id}, posición: ${position})`
+      );
 
     const signedUrl = await getSignedSongUrl(song.id);
     if (!signedUrl) {
