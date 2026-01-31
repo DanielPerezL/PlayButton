@@ -28,22 +28,23 @@ const NewPlaylistScreen = ({ navigation }) => {
       const success = await createPlaylist(
         await getLoggedUserId(),
         playlistName,
-        isPublic
+        isPublic,
       );
       if (success) {
         emitPlaylistsModifiedEvent(); // Emitir el evento
         navigation.goBack(); // Volver a la pantalla anterior (UserPlaylistsScreen)
+        navigation.navigate("PlaylistDetail", { playlist: success }); // Navegar a PlaylistDetailScreen
       } else {
         useAlert(
           "Error",
-          "Hubo un error al crear la playlist. Intenta nuevamente."
+          "Hubo un error al crear la playlist. Intenta nuevamente.",
         );
       }
     } catch (error) {
       console.error("Error creating playlist:", error);
       useAlert(
         "Error",
-        "Hubo un error al crear la playlist. Intenta nuevamente."
+        "Hubo un error al crear la playlist. Intenta nuevamente.",
       );
     } finally {
       setLoading(false);

@@ -91,7 +91,7 @@ export const login = async (nickname, password) => {
     if (data.is_admin) {
       showAlertOutsideReact(
         "Bienvenido Administrador",
-        "Has iniciado sesión como administrador. Puedes gestionar playlists de todos los usuarios."
+        "Has iniciado sesión como administrador. Puedes gestionar playlists de todos los usuarios.",
       );
     }
     emitLoginStatusChange(true);
@@ -220,7 +220,7 @@ export const searchSongsByName = async (name = "", offset = 0, limit = 50) => {
       if (__DEV__)
         console.error(
           "Formato de datos inválido en la búsqueda de canciones:",
-          data
+          data,
         );
       return { songs: [], hasMore: false };
     }
@@ -235,7 +235,7 @@ export const getPlaylistSongs = async (playlistId) => {
     const baseUrl = await getApiBaseUrl();
     const response = await customFetch(
       `${baseUrl}/playlists/${playlistId}/songs`,
-      { method: "GET" }
+      { method: "GET" },
     );
     if (!response) return null;
     if (!response.ok) {
@@ -280,7 +280,7 @@ export const getAllPlaylists = async (offset = 0, limit = 20) => {
     const baseUrl = await getApiBaseUrl();
     const response = await customFetch(
       `${baseUrl}/playlists?offset=${offset}&limit=${limit}`,
-      { method: "GET" }
+      { method: "GET" },
     );
 
     if (!response) return null;
@@ -316,7 +316,8 @@ export const createPlaylist = async (userId, name, isPublic = true) => {
       return false;
     }
 
-    return true;
+    const playlist = await response.json();
+    return playlist;
   } catch (error) {
     if (__DEV__) console.error("Error creating playlist:", error);
     return false; // En caso de error, devuelve false
@@ -372,7 +373,7 @@ export const addSongToPlaylist = async (playlistId, songId) => {
     const baseUrl = await getApiBaseUrl();
     const response = await customFetch(
       `${baseUrl}/playlists/${playlistId}/songs/${songId}`,
-      { method: "POST" }
+      { method: "POST" },
     );
 
     if (!response) return false;
@@ -393,14 +394,14 @@ export const removeSongFromPlaylist = async (playlistId, songId) => {
     const baseUrl = await getApiBaseUrl();
     const response = await customFetch(
       `${baseUrl}/playlists/${playlistId}/songs/${songId}`,
-      { method: "DELETE" }
+      { method: "DELETE" },
     );
 
     if (!response) return false;
     if (!response.ok) {
       if (__DEV__)
         console.error(
-          `Error removing song from playlist: HTTP ${response.status}`
+          `Error removing song from playlist: HTTP ${response.status}`,
         );
       return false;
     }
@@ -435,7 +436,7 @@ export const createSuggestion = async (songName, artistName) => {
     if (!response.ok) {
       if (__DEV__)
         console.error(
-          `Error suggesting song "${fullName}": HTTP ${response.status}`
+          `Error suggesting song "${fullName}": HTTP ${response.status}`,
         );
       return false;
     }

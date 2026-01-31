@@ -111,10 +111,10 @@ def create_playlist(user_id):
     if not user_id or not name:
         raise BadRequestException()
 
-    id = PlaylistsService.create_playlist(user_id, name, is_public)
-    response = make_response()
+    pl = PlaylistsService.create_playlist(user_id, name, is_public)
+    response = make_response(pl)
     response.status_code = 201
 
     base_url = request.host_url.rstrip('/')
-    response.headers["Location"] = f"{base_url}/api/playlists/{id}"
+    response.headers["Location"] = f"{base_url}/api/playlists/{pl['id']}"
     return response

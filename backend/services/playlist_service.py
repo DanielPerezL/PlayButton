@@ -19,7 +19,7 @@ class PlaylistsService:
             playlist = Playlist(name=name, user=user, is_public=is_public)
             db.session.add(playlist)
             db.session.commit()
-            return playlist.id
+            return playlist.to_dto()
         except Exception:
             db.session.rollback()
             raise ConflictException()
