@@ -5,6 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const access_token = async () => await AsyncStorage.getItem("access_token");
 const MAX_RETRIES = 10;
 const RETRY_DELAY = 1000;
+const MAX_WAIT_TIME = 6000;
 
 const FETCH_TIMEOUT = 10000;
 const MAX_CONCURRENT_FETCHES = 3;
@@ -15,12 +16,15 @@ export const customFetch = async (
   url,
   options = {},
   maxRetries = MAX_RETRIES,
-  retryDelay = RETRY_DELAY
+  retryDelay = RETRY_DELAY,
 ) => {
   // Esperar si hay demasiadas solicitudes activas
-  while (activeFetches >= MAX_CONCURRENT_FETCHES) {
+  let waitCount = 0;
+  while (activeFetches >= MAX_CONCURRENT_FETCHES && waitCount < MAX_WAIT_TIME) {
     await new Promise((res) => setTimeout(res, RETRY_DELAY * activeFetches));
+    waitCount += RETRY_DELAY * activeFetches;
   }
+  if (waitCount >= MAX_WAIT_TIME) waitCount = 0;
 
   activeFetches++;
   let attempts = 1;
@@ -43,7 +47,7 @@ export const customFetch = async (
     if (response === null) {
       showAlertOutsideReact(
         "Error de Conexión",
-        "Hubo un problema al conectar con el servidor. Inténtalo nuevamente."
+        "Hubo un problema al conectar con el servidor. Inténtalo nuevamente.",
       );
       return null;
     }
@@ -66,10 +70,13 @@ const _customFetch = async (url, options = {}, attempt = 0) => {
     options.headers = {
       ...options.headers,
       Authorization: `Bearer ${token}`,
+      Connection: "close",
     };
     options.signal = controller.signal;
 
-    const response = await fetch(url, options);
+    const separator = url.includes("?") ? "&" : "?";
+    const cleanUrl = `${url}${separator}cb=${Date.now()}`; // Cache buster
+    const response = await fetch(cleanUrl, options);
     clearTimeout(id);
 
     if (!response.ok) {
@@ -79,7 +86,7 @@ const _customFetch = async (url, options = {}, attempt = 0) => {
         await logout();
         showAlertOutsideReact(
           "Sesión Expirada",
-          "Por favor inicia sesión nuevamente."
+          "Por favor inicia sesión nuevamente.",
         );
         return undefined;
       }

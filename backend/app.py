@@ -62,6 +62,13 @@ def cors_headers():
     response.headers["Access-Control-Allow-Headers"] = "*"
     return response
 
+@app.after_request
+def handle_connection_header(response):
+    # Si la petición NO es a un archivo .mp3, forzamos el cierre
+    if not request.path.endswith('.mp3'):
+        response.headers["Connection"] = "close"
+    return response
+
 @app.route('/')
 def serve():
     return send_from_directory(app.static_folder, 'index.html')

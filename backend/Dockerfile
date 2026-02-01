@@ -13,4 +13,4 @@ RUN apt-get update && apt-get install -y \
 COPY . .
 
 # Comando para ejecutar la aplicación con Gunicorn
-CMD ["gunicorn", "-w", "2", "--timeout", "120", "--bind", "0.0.0.0:5000", "app:app", "--access-logfile", "-", "--error-logfile", "-"]
+CMD ["gunicorn", "-w", "2", "--timeout", "120", "--keep-alive", "5", "--bind", "0.0.0.0:5000", "app:app", "--access-logfile", "-", "--error-logfile", "-"]
