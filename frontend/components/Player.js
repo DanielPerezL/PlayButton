@@ -31,6 +31,7 @@ const Player = ({ songs, onSongsEnd }) => {
   const queueRef = useRef(null);
 
   const [playerReady, setPlayerReady] = useState(false);
+  const isPausedByUser = useRef(false);
 
   const DEFAULT_ARTWORK = require("../assets/artwork.png");
 
@@ -38,43 +39,67 @@ const Player = ({ songs, onSongsEnd }) => {
     const setupPlayer = async () => {
       await TrackPlayer.setupPlayer();
       TrackPlayer.updateOptions({
-        android: {
-          appKilledPlaybackBehavior:
-            AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
-        },
         capabilities: [
           Capability.Play,
           Capability.Pause,
           Capability.SkipToNext,
           Capability.SkipToPrevious,
         ],
+        android: {
+          appKilledPlaybackBehavior:
+            AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
+          alwaysPauseOnInterruption: true,
+        },
       });
 
       const onPlay = TrackPlayer.addEventListener(
         Event.RemotePlay,
         async () => {
+          isPausedByUser.current = false;
           await TrackPlayer.play();
-        }
+        },
       );
 
       const onPause = TrackPlayer.addEventListener(
         Event.RemotePause,
         async () => {
+          isPausedByUser.current = true;
           await TrackPlayer.pause();
-        }
+        },
       );
 
       const onTrackEnded = TrackPlayer.addEventListener(
         Event.PlaybackQueueEnded,
         async () => {
           playNext();
-        }
+        },
+      );
+
+      const onDuck = TrackPlayer.addEventListener(
+        Event.RemoteDuck,
+        async (event) => {
+          const { state } = await TrackPlayer.getPlaybackState();
+          const isPlaying =
+            state === State.Playing || state === State.Buffering;
+
+          if (event.permanent) {
+            await TrackPlayer.stop();
+            isPausedByUser.current = true; // Se perdió el foco permanentemente
+          } else if (event.paused && !isPausedByUser.current && isPlaying) {
+            await TrackPlayer.pause();
+          } else {
+            if (!isPausedByUser.current) {
+              await TrackPlayer.play();
+            }
+          }
+        },
       );
 
       return () => {
         onPlay.remove();
         onPause.remove();
         onTrackEnded.remove();
+        onDuck.remove();
       };
     };
 
@@ -95,7 +120,7 @@ const Player = ({ songs, onSongsEnd }) => {
       Event.RemotePrevious,
       () => {
         setCurrentSongIndex((prev) => prev - 1);
-      }
+      },
     );
 
     const onPlaybackError = TrackPlayer.addEventListener(
@@ -106,10 +131,10 @@ const Player = ({ songs, onSongsEnd }) => {
 
         try {
           const trackId = await TrackPlayer.getTrack(0).then(
-            (track) => track?.id
+            (track) => track?.id,
           );
           const songIndex = songs.findIndex(
-            (s) => s.id.toString() === trackId.toString()
+            (s) => s.id.toString() === trackId.toString(),
           );
           playSong(songIndex, currentPosition);
         } catch (error) {
@@ -117,7 +142,7 @@ const Player = ({ songs, onSongsEnd }) => {
             console.error("Error al obtener la pista actual:", error);
           return;
         }
-      }
+      },
     );
 
     return () => {
@@ -148,7 +173,7 @@ const Player = ({ songs, onSongsEnd }) => {
 
     if (__DEV__)
       console.log(
-        `Reproduciendo canción en el índice: ${songIndex}, posición: ${position}`
+        `Reproduciendo canción en el índice: ${songIndex}, posición: ${position}`,
       );
 
     const song = songs[songIndex];
@@ -159,7 +184,7 @@ const Player = ({ songs, onSongsEnd }) => {
 
     if (__DEV__)
       console.log(
-        `Reproduciendo canción: ${song.name} (ID: ${song.id}, posición: ${position})`
+        `Reproduciendo canción: ${song.name} (ID: ${song.id}, posición: ${position})`,
       );
 
     const signedUrl = await getSignedSongUrl(song.id);
@@ -216,8 +241,10 @@ const Player = ({ songs, onSongsEnd }) => {
 
   const togglePlayPause = async () => {
     if (playbackState.state === State.Playing) {
+      isPausedByUser.current = true;
       await TrackPlayer.pause();
     } else {
+      isPausedByUser.current = false;
       await TrackPlayer.play();
     }
   };
