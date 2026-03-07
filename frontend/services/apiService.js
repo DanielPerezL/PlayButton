@@ -110,6 +110,53 @@ export const logout = async () => {
   return true;
 };
 
+export const changeUserPassword = async (currentPassword, newPassword) => {
+  const baseUrl = await getApiBaseUrl();
+  const userId = await getLoggedUserId(); // Obtenemos el ID del usuario logueado
+
+  const response = await customFetch(
+    `${baseUrl}/users/${userId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        current_password: currentPassword,
+        new_password: newPassword,
+      }),
+    },
+    (maxRetries = 2),
+  );
+
+  if (response && response.status === 204) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
+export const deleteUserAccount = async () => {
+  try {
+    const baseUrl = await getApiBaseUrl();
+    const userId = await getLoggedUserId();
+
+    const response = await customFetch(`${baseUrl}/users/${userId}`, {
+      method: "DELETE",
+    });
+
+    if (response && (response.status === 204 || response.status === 200)) {
+      return true;
+    }
+
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "No se pudo eliminar la cuenta.");
+  } catch (error) {
+    if (__DEV__) console.error("Error en deleteUserAccount:", error);
+    throw error;
+  }
+};
+
 export const getSignedSongUrl = async (songId) => {
   try {
     const baseUrl = await getApiBaseUrl();
