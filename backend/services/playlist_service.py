@@ -122,7 +122,7 @@ class PlaylistsService:
             if search:
                 query = query.filter(Playlist.name.ilike(f"%{search}%"))
             
-            query = query.order_by(Playlist.favorites_count.desc(), Playlist.id.desc())
+            query = query.order_by(Playlist.favorites_count.desc(), Playlist.id)
             return PlaylistsService.get_playlists_paginated(query, offset, limit, current_user_id)
         except Exception:
             raise AppException()
@@ -135,7 +135,7 @@ class PlaylistsService:
             if search:
                 query = query.filter(Playlist.name.ilike(f"%{search}%"))
                 
-            query = query.order_by(Playlist.favorites_count.desc(), Playlist.id.desc())
+            query = query.order_by(Playlist.favorites_count.desc(), Playlist.id)
             return PlaylistsService.get_playlists_paginated(query, offset, limit, current_user_id)
         except Exception:
             raise AppException()
