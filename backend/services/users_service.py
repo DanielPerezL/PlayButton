@@ -1,4 +1,5 @@
-from models import User
+from models import User, Playlist, user_favorite_playlist
+from services import PlaylistsService
 from config import NICKNAME_MAX_LENGTH, db
 from exceptions import *
 import re
@@ -29,22 +30,6 @@ class UsersService():
         except Exception:
             db.session.rollback()
             return None
-
-    @staticmethod    
-    def get_user_playlists(user_id):
-        user = User.query.get(user_id)
-        if not user:
-            raise NotFoundException()
-
-        return [playlist.to_dto() for playlist in user.playlists]
-    
-    @staticmethod    
-    def get_user_public_playlists(user_id):
-        user = User.query.get(user_id)
-        if not user:
-            raise NotFoundException()
-
-        return [playlist.to_dto() for playlist in user.playlists if playlist.is_public]
 
     @staticmethod
     def get_user(id):
@@ -102,3 +87,13 @@ class UsersService():
         except Exception as e:
             raise AppException()
 
+    @staticmethod
+    def get_user_favorite_playlists(user, offset=0, limit=20, search="", current_user_id=None):
+        try:
+            query = user.favorite_playlists
+            if search:
+                query = query.filter(Playlist.name.ilike(f"%{search}%"))
+            query = query.order_by(Playlist.favorites_count.desc(), Playlist.id.desc())
+            return PlaylistsService.get_playlists_paginated(query, offset, limit, current_user_id)
+        except Exception as e:
+            raise AppException(e)

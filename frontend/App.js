@@ -15,6 +15,7 @@ import Colors from "./services/colors";
 import { AlertProvider } from "./services/alertContext";
 import ConfigurationStack from "./navigation/ConfigurationStack";
 import PlayerScreen from "./screens/PlayerScreen";
+import UserFavsPlaylistStack from "./navigation/UserFavsPlaylistStack";
 
 const App = () => {
   const [logged, setLogged] = useState(false);
@@ -47,7 +48,7 @@ const App = () => {
     // Suscribirse al evento
     const subscription = authEventEmitter.addListener(
       "authStatusChanged",
-      handleAuthChange
+      handleAuthChange,
     );
 
     return () => {
@@ -95,6 +96,11 @@ const App = () => {
               <Drawer.Screen
                 name="Mis playlists"
                 component={UserPlaylistsStack}
+                options={{ headerShown: false }}
+              />
+              <Drawer.Screen
+                name="Mis favoritas"
+                component={UserFavsPlaylistStack}
                 options={{ headerShown: false }}
               />
               <Drawer.Screen

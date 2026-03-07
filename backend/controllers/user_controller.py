@@ -32,13 +32,23 @@ def register():
 @jwt_required()
 def get_user_playlists(user_id):
     client = get_user_from_token(get_jwt())
-    user = UsersService.get_user(user_id)
+    offset = request.args.get('offset', 0, type=int)
+    limit = request.args.get('limit', 20, type=int)
+    search = request.args.get('search', '', type=str)
 
-    if not has_permission(client, user):
-        playlists = UsersService.get_user_public_playlists(user_id)    
-    else:
-        playlists = UsersService.get_user_playlists(user_id)
-    return jsonify({"playlists": playlists}), 200
+    target_user = UsersService.get_user(user_id)
+    only_public = not has_permission(client, target_user)
+
+    playlists_data = PlaylistsService.get_playlists_by_user(
+        user_id=target_user.id,
+        only_public=only_public,
+        offset=offset,
+        limit=limit,
+        search=search,
+        current_user_id=client.id
+    )
+    
+    return jsonify(playlists_data), 200
 
 @app.route('/api/users/<string:id>', methods=['GET'])
 @jwt_required()
@@ -118,3 +128,23 @@ def create_playlist(user_id):
     base_url = request.host_url.rstrip('/')
     response.headers["Location"] = f"{base_url}/api/playlists/{pl['id']}"
     return response
+
+@app.route('/api/users/<string:user_id>/favorites', methods=['GET'])
+@jwt_required()
+def get_user_favorites(user_id):
+    client = get_user_from_token(get_jwt())
+    offset = request.args.get('offset', 0, type=int)
+    limit = request.args.get('limit', 20, type=int)
+    search = request.args.get('search', '', type=str)
+
+    user = UsersService.get_user(user_id)
+
+    data = UsersService.get_user_favorite_playlists(
+        user=user,
+        offset=offset,
+        limit=limit,
+        search=search,
+        current_user_id=client.id
+    )
+    
+    return jsonify(data), 200

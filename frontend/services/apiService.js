@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { emitLoginStatusChange } from "../events/authEvent";
 import { showAlertOutsideReact } from "../services/alertContext";
 import { customFetch } from "../services/fetchingService";
+import { emitFavPlaylistsModifiedEvent } from "../events/favPlaylistsModifiedEvent";
 
 const API_URL_KEY = "API_BASE_URL";
 
@@ -303,44 +304,133 @@ export const getPlaylistSongs = async (playlistId) => {
   }
 };
 
-export const fetchUserPlaylists = async (userId) => {
-  const baseUrl = await getApiBaseUrl();
-  const response = await customFetch(`${baseUrl}/users/${userId}/playlists`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+export const fetchUserPlaylists = async (
+  userId,
+  offset = 0,
+  limit = 10,
+  search = "",
+) => {
+  try {
+    const baseUrl = await getApiBaseUrl();
+    // Construimos la URL con query params para filtro y paginación
+    const url = `${baseUrl}/users/${userId}/playlists?offset=${offset}&limit=${limit}&search=${encodeURIComponent(search)}`;
 
-  if (!response) return [];
-  if (!response.ok) {
-    if (__DEV__)
-      console.error(`Error fetching playlists: HTTP ${response.status}`);
-    return [];
+    const response = await customFetch(url, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response || !response.ok) {
+      if (__DEV__)
+        console.error(
+          `Error fetching user playlists: HTTP ${response?.status}`,
+        );
+      return { playlists: [], has_more: false };
+    }
+
+    const data = await response.json();
+    // Devolvemos el objeto completo para que el componente sepa si hay más
+    return {
+      playlists: data.playlists || [],
+      has_more: data.has_more || false,
+    };
+  } catch (error) {
+    if (__DEV__) console.error("Error fetching user playlists:", error);
+    return { playlists: [], has_more: false };
   }
-  const data = await response.json();
-  return data.playlists || []; // Devuelve las playlists
 };
 
-export const getAllPlaylists = async (offset = 0, limit = 20) => {
+export const togglePlaylistFavorite = async (
+  playlistId,
+  emitFavEvent = true,
+) => {
   try {
     const baseUrl = await getApiBaseUrl();
     const response = await customFetch(
-      `${baseUrl}/playlists?offset=${offset}&limit=${limit}`,
-      { method: "GET" },
+      `${baseUrl}/playlists/${playlistId}/favorite`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+      (maxRetries = 2),
     );
 
-    if (!response) return null;
-    if (!response.ok) {
+    if (!response || !response.ok) {
       if (__DEV__)
-        console.error(`Error fetching playlists: HTTP ${response.status}`);
+        console.error(`Error toggling favorite: HTTP ${response?.status}`);
       return null;
     }
+
     const data = await response.json();
-    return data;
+    if (emitFavEvent) emitFavPlaylistsModifiedEvent();
+    // Retornamos el nuevo contador que viene del backend: {"favorites_count": X}
+    return data.favorites_count;
   } catch (error) {
-    if (__DEV__) console.error("Error fetching playlists:", error);
+    if (__DEV__) console.error("Error en togglePlaylistFavorite:", error);
     return null;
+  }
+};
+
+export const fetchUserFavoritePlaylists = async (
+  userId,
+  offset = 0,
+  limit = 10,
+  search = "",
+) => {
+  try {
+    const baseUrl = await getApiBaseUrl();
+
+    // Si no viene userId, intentamos sacar el del logueado
+    const targetUserId = userId || (await getLoggedUserId());
+
+    if (!targetUserId) return { playlists: [], has_more: false };
+    const url = `${baseUrl}/users/${targetUserId}/favorites?offset=${offset}&limit=${limit}&search=${encodeURIComponent(search)}`;
+    const response = await customFetch(url, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response || !response.ok) {
+      if (__DEV__)
+        console.error(`Error fetching favorites: HTTP ${response?.status}`);
+      return { playlists: [], has_more: false };
+    }
+
+    const data = await response.json();
+    return {
+      playlists: data.playlists || [],
+      has_more: data.has_more || false,
+    };
+  } catch (error) {
+    if (__DEV__) console.error("Error en fetchUserFavoritePlaylists:", error);
+    return { playlists: [], has_more: false };
+  }
+};
+
+export const getAllPlaylists = async (offset = 0, limit = 10, search = "") => {
+  try {
+    const baseUrl = await getApiBaseUrl();
+    const url = `${baseUrl}/playlists?offset=${offset}&limit=${limit}&search=${encodeURIComponent(search)}`;
+
+    const response = await customFetch(url, { method: "GET" });
+
+    if (!response || !response.ok) {
+      if (__DEV__)
+        console.error(
+          `Error fetching public playlists: HTTP ${response?.status}`,
+        );
+      return { playlists: [], has_more: false };
+    }
+    const data = await response.json();
+    return {
+      playlists: data.playlists || [],
+      has_more: data.has_more || false,
+    };
+  } catch (error) {
+    if (__DEV__) console.error("Error fetching public playlists:", error);
+    return { playlists: [], has_more: false };
   }
 };
 

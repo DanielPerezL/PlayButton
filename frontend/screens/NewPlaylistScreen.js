@@ -16,7 +16,7 @@ const NewPlaylistScreen = ({ navigation }) => {
   const { showAlert } = useAlert();
 
   const [playlistName, setPlaylistName] = useState("");
-  const [isPublic, setIsPublic] = useState(false);
+  const [isPublic, setIsPublic] = useState(true);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {

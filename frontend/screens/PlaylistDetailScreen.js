@@ -21,6 +21,7 @@ import {
   updatePlaylist,
   deletePlaylist,
   getIsAdmin,
+  togglePlaylistFavorite,
 } from "../services/apiService";
 import { emitPlaylistsModifiedEvent } from "../events/playlistsModifiedEvent";
 import Colors from "../services/colors";
@@ -42,6 +43,33 @@ const PlaylistDetailScreen = () => {
   const [isPublic, setIsPublic] = useState(playlist.is_public);
   const [searchTerm, setSearchTerm] = useState("");
   const [showActions, setShowActions] = useState(false);
+
+  const [isFav, setIsFav] = useState(playlist.is_favorite);
+  const [favCount, setFavCount] = useState(playlist.favorites_count || 0);
+  const [favLoading, setFavLoading] = useState(false);
+
+  const handleToggleFavorite = async () => {
+    if (favLoading) return;
+
+    const previousFav = isFav;
+    const previousCount = favCount;
+
+    setIsFav(!previousFav);
+    setFavCount((prev) => (previousFav ? prev - 1 : prev + 1));
+    setFavLoading(true);
+
+    const newCount = await togglePlaylistFavorite(playlist.id);
+
+    if (newCount === null) {
+      setIsFav(previousFav);
+      setFavCount(previousCount);
+      showAlert("Error", "No se pudo actualizar favoritos");
+    } else {
+      setFavCount(newCount);
+      emitPlaylistsModifiedEvent();
+    }
+    setFavLoading(false);
+  };
 
   const fetchSongs = async (forceRefresh = false) => {
     try {
@@ -114,14 +142,14 @@ const PlaylistDetailScreen = () => {
             }
           },
         },
-      ]
+      ],
     );
   };
 
   const filteredSongs =
     songs &&
     songs.filter((song) =>
-      song.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      song.name?.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   const renderSongItem = ({ item }) => {
     let artist = "Desconocido";
@@ -151,16 +179,43 @@ const PlaylistDetailScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.titleWrapper}>
-        <Ionicons
-          name="musical-notes"
-          size={28}
-          color="#fff"
-          style={styles.titleIcon}
-        />
-        <Text style={styles.title}>{playlist.name}</Text>
+      <View style={styles.headerRow}>
+        <View style={styles.titleWrapper}>
+          <Ionicons
+            name="musical-notes"
+            size={28}
+            color="#fff"
+            style={styles.titleIcon}
+          />
+          {/* Contenedor flex para que el texto sepa cuánto puede medir */}
+          <View style={styles.textContainer}>
+            <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+              {playlist.name}
+            </Text>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          onPress={handleToggleFavorite}
+          style={styles.favHeaderButton}
+          disabled={favLoading}
+        >
+          <Ionicons
+            name={isFav ? "heart" : "heart-outline"}
+            size={30}
+            color={isFav ? "#ff4444" : "#fff"}
+          />
+        </TouchableOpacity>
       </View>
-      <View style={styles.subtitleRow}>
+
+      <TouchableOpacity
+        style={styles.subtitleRow}
+        onPress={() =>
+          navigation.navigate("UserPlaylists", {
+            user: { id: playlist.user_id, name: playlist.user },
+          })
+        }
+      >
         <Ionicons
           name="person-circle"
           size={18}
@@ -168,10 +223,19 @@ const PlaylistDetailScreen = () => {
           style={{ marginRight: 6 }}
         />
         <Text style={styles.subtitle}>{playlist.user}</Text>
+      </TouchableOpacity>
+
+      {/* INFO DE PLAYLIST INCLUYENDO FAVS */}
+      <View style={styles.infoRow}>
+        <Text style={styles.subtitle}>
+          {playlist.is_public ? "Pública" : "Privada"} · {songs.length}{" "}
+          canciones
+        </Text>
+        <View style={styles.favBadge}>
+          <Ionicons name="heart" size={14} color={isFav ? "#ff4444" : "#888"} />
+          <Text style={styles.favBadgeText}>{favCount}</Text>
+        </View>
       </View>
-      <Text style={styles.subtitle}>
-        {playlist.is_public ? "Pública" : "Privada"} · {songs.length} canciones
-      </Text>
       <View style={styles.searchContainer}>
         <Ionicons
           name="search"
@@ -277,7 +341,7 @@ const PlaylistDetailScreen = () => {
                           }
                         },
                       },
-                    ]
+                    ],
                   );
                 }}
               >
@@ -380,7 +444,7 @@ const PlaylistDetailScreen = () => {
                   const success = await updatePlaylist(
                     playlist.id,
                     newPlaylistName.trim(),
-                    isPublic
+                    isPublic,
                   );
                   if (success) {
                     emitPlaylistsModifiedEvent();
@@ -409,6 +473,48 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#1c1c1c",
     padding: 20,
+  },
+  textContainer: {
+    flex: 1, // <--- Permite que este contenedor se encoja si el texto es largo
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between", // Separa el grupo del título del corazón
+    width: "88%",
+    marginBottom: 10,
+  },
+  titleWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1, // <--- IMPORTANTE: Ocupa todo el espacio menos lo que use el corazón
+    marginRight: 10, // Espacio de seguridad entre el título y el corazón
+  },
+  favHeaderButton: {
+    padding: 5,
+    width: 40, // Ancho fijo para que no se mueva
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 10,
+  },
+  favBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2a2a2a",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    gap: 4,
+  },
+  favBadgeText: {
+    color: "#aaa",
+    fontSize: 14,
+    fontWeight: "bold",
   },
   title: {
     color: "white",

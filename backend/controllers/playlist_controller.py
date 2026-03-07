@@ -13,11 +13,18 @@ from models import Playlist
 @app.route('/api/playlists', methods=['GET'])
 @jwt_required()
 def get_all_playlists():
-    # Obtener parámetros offset y limit de la query string (con valores por defecto)
+    client = get_user_from_token(get_jwt())
     offset = request.args.get('offset', 0, type=int)
     limit = request.args.get('limit', 20, type=int)
+    search = request.args.get('search', '', type=str)
 
-    playlists_data = PlaylistsService.get_all_playlists(offset, limit)
+    playlists_data = PlaylistsService.get_all_playlists(
+        offset=offset,
+        limit=limit,
+        search=search,
+        current_user_id=client.id
+    )
+    
     return jsonify(playlists_data), 200
 
 @app.route('/api/playlists/<int:playlist_id>', methods=['DELETE'])
@@ -88,3 +95,11 @@ def get_playlist_songs(playlist_id):
 
     songs = PlaylistsService.get_playlist_songs(playlist_id)
     return jsonify(songs), 200
+
+@app.route('/api/playlists/<int:playlist_id>/favorite', methods=['POST'])
+@jwt_required()
+def toggle_playlist_favorite(playlist_id):
+    client = get_user_from_token(get_jwt())
+    
+    new_count = PlaylistsService.toggle_favorite(client, playlist_id)
+    return jsonify({"favorites_count": new_count}), 200
