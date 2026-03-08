@@ -22,6 +22,9 @@ def has_permission(user, resource):
 def is_admin(user):
     return user.id == 1
 
+def get_user_admin():
+    return User.query.get(1)
+
 def has_more_results(query, offset, limit):
     return query.offset(offset + limit).first() is not None
 

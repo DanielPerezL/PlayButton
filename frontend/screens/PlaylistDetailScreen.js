@@ -197,6 +197,7 @@ const PlaylistDetailScreen = () => {
 
       <TouchableOpacity
         style={styles.subtitleRow}
+        disabled={!playlist.user_id || playlist.user_id == 1 || isOwner}
         onPress={() =>
           navigation.navigate("UserPlaylists", {
             user: { id: playlist.user_id, name: playlist.user },
@@ -236,7 +237,11 @@ const PlaylistDetailScreen = () => {
         />
         <TextInput
           style={styles.searchInput}
-          placeholder="Buscar canción en la playlist"
+          placeholder={
+            playlist.is_artist_playlist
+              ? "Buscar canción en el artista"
+              : "Buscar canción en la playlist"
+          }
           placeholderTextColor="#aaa"
           value={searchTerm}
           onChangeText={setSearchTerm}

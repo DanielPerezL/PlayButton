@@ -129,8 +129,16 @@ class PlaylistsService:
 
     @staticmethod
     def get_all_playlists(offset=0, limit=20, search="", current_user_id=None):
+        return PlaylistsService._get_all(offset, limit, search, current_user_id=current_user_id, only_artist=False)
+    
+    @staticmethod
+    def get_all_artists_playlists(offset=0, limit=20, search="", current_user_id=None):
+        return PlaylistsService._get_all(offset, limit, search, current_user_id=current_user_id, only_artist=True)
+    
+    @staticmethod
+    def _get_all(offset=0, limit=20, search="", current_user_id=None, only_artist=False):
         try:
-            query = Playlist.query.filter_by(is_public=True)
+            query = Playlist.query.filter_by(is_public=True).filter_by(is_artist_playlist=only_artist)
             
             if search:
                 query = query.filter(Playlist.name.ilike(f"%{search}%"))

@@ -16,6 +16,7 @@ import { AlertProvider } from "./services/alertContext";
 import ConfigurationStack from "./navigation/ConfigurationStack";
 import PlayerScreen from "./screens/PlayerScreen";
 import UserFavsPlaylistStack from "./navigation/UserFavsPlaylistStack";
+import ArtistsStack from "./navigation/ArtistsStack";
 
 const App = () => {
   const [logged, setLogged] = useState(false);
@@ -106,6 +107,11 @@ const App = () => {
               <Drawer.Screen
                 name="Playlist públicas"
                 component={PublicPlaylistsStack}
+                options={{ headerShown: false }}
+              />
+              <Drawer.Screen
+                name="Artistas"
+                component={ArtistsStack}
                 options={{ headerShown: false }}
               />
               <Drawer.Screen

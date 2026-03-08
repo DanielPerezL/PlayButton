@@ -1,11 +1,11 @@
 from flask import  request
 from config import app, db
-from models import Song, Mp3
+from models import Song, Mp3, Playlist
 from sqlalchemy.sql import func
 import os
 import base64
 from exceptions import BadRequestException, ConflictException, AppException, NotFoundException, BadAudioFileException
-from utils import has_more_results
+from utils import has_more_results, get_user_admin
 from pydub import AudioSegment
 import tempfile
 
@@ -39,7 +39,8 @@ class SongsService():
             # Crear la canción y guardarla en la base de datos
             new_song = Song(name=name)
             db.session.add(new_song)
-            db.session.commit()
+            db.session.flush()
+            SongsService.sync_artist_playlists(new_song)
             
             # Generar el nombre del archivo basado en el ID
             filename = f"{new_song.id}.mp3"
@@ -94,8 +95,14 @@ class SongsService():
             if Song.query.filter(Song.name == new_name, Song.id != song_id).first():
                 raise ConflictException()
             
+            name_changed = song.name != new_name
+
             song.name = new_name
             song.shown_zenn = new_zenn
+
+            if name_changed:
+                SongsService.sync_artist_playlists(song)
+
             db.session.commit()
         except Exception as e:
             db.session.rollback()
@@ -144,6 +151,8 @@ class SongsService():
             if not song:
                 return
 
+            artist_playlist_ids = [p.id for p in song.playlists if p.is_artist_playlist]
+
             # Eliminar la canción de la base de datos
             filename = f"{song.id}.mp3"
             db.session.delete(song)
@@ -152,7 +161,56 @@ class SongsService():
             if mp3_record:
                 db.session.delete(mp3_record)
 
+            db.session.flush()
+            for pl_id in artist_playlist_ids:
+                playlist = Playlist.query.get(pl_id)
+                if playlist and not playlist.songs:
+                    db.session.delete(playlist)
+
             db.session.commit()
         except Exception as e:
             db.session.rollback()  # Revertir cualquier cambio en caso de error
             raise AppException()
+
+    @staticmethod
+    def sync_artist_playlists(song):
+        if song.id is not None:
+            old_artist_playlists = Playlist.query.filter(
+                Playlist.is_artist_playlist == True,
+                Playlist.songs.contains(song)
+            ).all()
+
+            for pl in old_artist_playlists:
+                pl.songs.remove(song)
+                db.session.flush()
+                if not pl.songs:
+                    db.session.delete(pl)
+        
+        if " - " not in song.name:
+            db.session.flush()
+            return
+        
+        artists_part = song.name.split(" - ")[0]
+        artists = [a.strip() for a in artists_part.split(",") if a.strip()]
+
+        for artist_name in artists:
+            playlist = Playlist.query.filter_by(
+                name=artist_name, 
+                is_artist_playlist=True
+            ).first()
+
+            if not playlist:
+                
+                playlist = Playlist(
+                    name=artist_name,
+                    is_public=True,
+                    is_artist_playlist=True,
+                    user=get_user_admin()
+                )
+                db.session.add(playlist)
+                db.session.flush()
+
+            if song not in playlist.songs:
+                playlist.songs.append(song)
+        
+        db.session.flush()

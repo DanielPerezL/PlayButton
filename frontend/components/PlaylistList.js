@@ -21,7 +21,7 @@ import {
 } from "../events/favPlaylistsModifiedEvent";
 import { useIsFocused } from "@react-navigation/native";
 
-const PlaylistList = ({ fetchFunction, extraHeader }) => {
+const PlaylistList = ({ fetchFunction, extraHeader, isArtists = false }) => {
   const [playlists, setPlaylists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -124,7 +124,7 @@ const PlaylistList = ({ fetchFunction, extraHeader }) => {
 
           <TextInput
             style={styles.searchInput}
-            placeholder="Buscar playlist..."
+            placeholder={isArtists ? "Buscar artista..." : "Buscar playlist..."}
             placeholderTextColor="#888"
             value={search}
             onChangeText={setSearch}

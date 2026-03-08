@@ -431,6 +431,31 @@ export const getAllPlaylists = async (offset = 0, limit = 10, search = "") => {
   }
 };
 
+export const getAllArtists = async (offset = 0, limit = 10, search = "") => {
+  try {
+    const baseUrl = await getApiBaseUrl();
+    const url = `${baseUrl}/artists?offset=${offset}&limit=${limit}&search=${encodeURIComponent(search)}`;
+
+    const response = await customFetch(url, { method: "GET" });
+
+    if (!response || !response.ok) {
+      if (__DEV__)
+        console.error(
+          `Error fetching public playlists: HTTP ${response?.status}`,
+        );
+      return { playlists: [], has_more: false };
+    }
+    const data = await response.json();
+    return {
+      playlists: data.playlists || [],
+      has_more: data.has_more || false,
+    };
+  } catch (error) {
+    if (__DEV__) console.error("Error fetching public playlists:", error);
+    return { playlists: [], has_more: false };
+  }
+};
+
 export const createPlaylist = async (userId, name, isPublic = true) => {
   const data = { name, is_public: isPublic };
   try {

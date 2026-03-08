@@ -27,6 +27,23 @@ def get_all_playlists():
     
     return jsonify(playlists_data), 200
 
+@app.route('/api/artists', methods=['GET'])
+@jwt_required()
+def get_all_artists_playlists():
+    client = get_user_from_token(get_jwt())
+    offset = request.args.get('offset', 0, type=int)
+    limit = request.args.get('limit', 20, type=int)
+    search = request.args.get('search', '', type=str)
+
+    playlists_data = PlaylistsService.get_all_artists_playlists(
+        offset=offset,
+        limit=limit,
+        search=search,
+        current_user_id=client.id
+    )
+    
+    return jsonify(playlists_data), 200
+
 @app.route('/api/playlists/<int:playlist_id>', methods=['DELETE'])
 @jwt_required()
 def delete_playlist(playlist_id):
