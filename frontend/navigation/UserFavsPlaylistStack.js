@@ -9,7 +9,7 @@ import FavoritePlaylistsScreen from "../screens/FavoritePlaylistsScreen";
 
 const Stack = createNativeStackNavigator();
 
-const PublicPlaylistsStack = () => {
+const UserFavsPlaylistStack = () => {
   return (
     <Stack.Navigator
       screenOptions={{
@@ -21,7 +21,7 @@ const PublicPlaylistsStack = () => {
         name="PublicPlaylists"
         component={FavoritePlaylistsScreen}
         options={{
-          title: "Mis favoritas",
+          title: "Mis playlist favoritas",
           headerLeft: () => <HeaderMenuButton />,
         }}
       />
@@ -54,4 +54,4 @@ const PublicPlaylistsStack = () => {
   );
 };
 
-export default PublicPlaylistsStack;
+export default UserFavsPlaylistStack;

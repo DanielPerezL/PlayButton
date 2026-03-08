@@ -49,16 +49,12 @@ const UserPlaylistsScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>
-        {isOwnProfile ? "Mis Playlists" : `Playlists de ${targetUser.name}`}
-      </Text>
+      {!isOwnProfile && (
+        <Text style={styles.title}>Playlists de {targetUser.name}</Text>
+      )}
 
       {/* El key={targetUser.id} fuerza a PlaylistList a reiniciarse si cambias de perfil */}
-      <PlaylistList
-        key={targetUser.id}
-        fetchFunction={fetchPlaylists}
-        publicCard={!isOwnProfile}
-      />
+      <PlaylistList key={targetUser.id} fetchFunction={fetchPlaylists} />
 
       {/* Solo mostramos el botón de añadir si es MI perfil */}
       {isOwnProfile && (

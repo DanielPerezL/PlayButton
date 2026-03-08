@@ -9,7 +9,7 @@ const PublicPlaylistsScreen = () => {
 
   return (
     <View style={styles.container}>
-      <PlaylistList fetchFunction={getAllPlaylists} publicCard={true} />
+      <PlaylistList fetchFunction={getAllPlaylists} />
 
       <NewPlaylistButton
         onPress={() => navigation.navigate("NewPlaylistScreen")}

@@ -99,7 +99,7 @@ const App = () => {
                 options={{ headerShown: false }}
               />
               <Drawer.Screen
-                name="Mis favoritas"
+                name="Mis playlist favoritas"
                 component={UserFavsPlaylistStack}
                 options={{ headerShown: false }}
               />

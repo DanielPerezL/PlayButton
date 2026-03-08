@@ -4,16 +4,10 @@ import { fetchUserFavoritePlaylists } from "../services/apiService";
 import NewPlaylistButton from "../components/NewPlaylistButton";
 import { useNavigation } from "@react-navigation/native";
 import { useCallback, useEffect, useState } from "react";
-import {
-  emitFavPlaylistsModifiedEvent,
-  subscribeToFavPlaylistsModifiedEvent,
-  unsubscribeFromFavPlaylistsModifiedEvent,
-} from "../events/favPlaylistsModifiedEvent";
 
 const FavoritePlaylistsScreen = () => {
   const navigation = useNavigation();
   const [currentUserId, setCurrentUserId] = useState(null);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const loadUserId = async () => {
@@ -35,26 +29,9 @@ const FavoritePlaylistsScreen = () => {
     [currentUserId], // Se recrea solo si el ID cambia
   );
 
-  useEffect(() => {
-    const listener = subscribeToFavPlaylistsModifiedEvent(() => {
-      // volver a montar playlist list para refrescar datos
-      setRefreshKey((prev) => prev + 1);
-    });
-
-    // Limpiar el listener cuando el componente se desmonte
-    return () => {
-      unsubscribeFromFavPlaylistsModifiedEvent(listener);
-    };
-  }, []);
-
   return (
     <View style={styles.container}>
-      <PlaylistList
-        key={refreshKey}
-        fetchFunction={handleFetchFavorites}
-        publicCard={true}
-        emitFavEvent={false}
-      />
+      <PlaylistList fetchFunction={handleFetchFavorites} />
 
       <NewPlaylistButton
         onPress={() => navigation.navigate("NewPlaylistScreen")}

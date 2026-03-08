@@ -66,7 +66,6 @@ const PlaylistDetailScreen = () => {
       showAlert("Error", "No se pudo actualizar favoritos");
     } else {
       setFavCount(newCount);
-      emitPlaylistsModifiedEvent();
     }
     setFavLoading(false);
   };
@@ -194,18 +193,6 @@ const PlaylistDetailScreen = () => {
             </Text>
           </View>
         </View>
-
-        <TouchableOpacity
-          onPress={handleToggleFavorite}
-          style={styles.favHeaderButton}
-          disabled={favLoading}
-        >
-          <Ionicons
-            name={isFav ? "heart" : "heart-outline"}
-            size={30}
-            color={isFav ? "#ff4444" : "#fff"}
-          />
-        </TouchableOpacity>
       </View>
 
       <TouchableOpacity
@@ -231,10 +218,14 @@ const PlaylistDetailScreen = () => {
           {playlist.is_public ? "Pública" : "Privada"} · {songs.length}{" "}
           canciones
         </Text>
-        <View style={styles.favBadge}>
+        <TouchableOpacity
+          style={styles.favBadge}
+          onPress={handleToggleFavorite}
+          disabled={favLoading}
+        >
           <Ionicons name="heart" size={14} color={isFav ? "#ff4444" : "#888"} />
           <Text style={styles.favBadgeText}>{favCount}</Text>
-        </View>
+        </TouchableOpacity>
       </View>
       <View style={styles.searchContainer}>
         <Ionicons
@@ -489,12 +480,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1, // <--- IMPORTANTE: Ocupa todo el espacio menos lo que use el corazón
     marginRight: 10, // Espacio de seguridad entre el título y el corazón
-  },
-  favHeaderButton: {
-    padding: 5,
-    width: 40, // Ancho fijo para que no se mueva
-    alignItems: "center",
-    justifyContent: "center",
   },
   infoRow: {
     flexDirection: "row",

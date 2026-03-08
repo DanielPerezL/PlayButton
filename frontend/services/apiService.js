@@ -340,10 +340,7 @@ export const fetchUserPlaylists = async (
   }
 };
 
-export const togglePlaylistFavorite = async (
-  playlistId,
-  emitFavEvent = true,
-) => {
+export const togglePlaylistFavorite = async (playlistId) => {
   try {
     const baseUrl = await getApiBaseUrl();
     const response = await customFetch(
@@ -364,7 +361,7 @@ export const togglePlaylistFavorite = async (
     }
 
     const data = await response.json();
-    if (emitFavEvent) emitFavPlaylistsModifiedEvent();
+    emitFavPlaylistsModifiedEvent();
     // Retornamos el nuevo contador que viene del backend: {"favorites_count": X}
     return data.favorites_count;
   } catch (error) {

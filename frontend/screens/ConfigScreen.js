@@ -162,6 +162,13 @@ const ConfigScreen = () => {
       },
     },
 
+    // Sugerir canciones
+    {
+      key: "Sugerencias",
+      value: "Sugerir canciones",
+      action: () => navigation.navigate("SugerenciasScreen"),
+    },
+
     // Repo de GitHub
     {
       key: "Repositorio en GitHub",
@@ -174,13 +181,6 @@ const ConfigScreen = () => {
           "como desplegar tu propio servidor de PlayButton.",
         link: "https://github.com/DanielPerezL/PlayButton",
       },
-    },
-
-    // Sugerir canciones
-    {
-      key: "Sugerencias",
-      value: "Sugerir canciones",
-      action: () => navigation.navigate("SugerenciasScreen"),
     },
 
     // Versión de app

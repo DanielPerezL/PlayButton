@@ -5,7 +5,7 @@ import Colors from "../services/colors";
 import { useState } from "react";
 import { togglePlaylistFavorite } from "../services/apiService";
 
-const PlaylistCard = ({ playlist, publicCard, emitFavEvent = true }) => {
+const PlaylistCard = ({ playlist }) => {
   const navigation = useNavigation();
   const [isFav, setIsFav] = useState(playlist.is_favorite);
   const [favCount, setFavCount] = useState(playlist.favorites_count);
@@ -17,7 +17,7 @@ const PlaylistCard = ({ playlist, publicCard, emitFavEvent = true }) => {
     setIsFav(!prevFav);
     setFavCount(prevFav ? prevCount - 1 : prevCount + 1);
 
-    const newCount = await togglePlaylistFavorite(playlist.id, emitFavEvent);
+    const newCount = await togglePlaylistFavorite(playlist.id);
     if (newCount === null) {
       // Si falló, revertimos al estado anterior
       setIsFav(prevFav);
@@ -42,30 +42,23 @@ const PlaylistCard = ({ playlist, publicCard, emitFavEvent = true }) => {
         </Text>
 
         <View style={styles.bottomRow}>
-          {publicCard ? (
-            <View style={styles.row}>
-              <Ionicons name="person-circle-outline" size={16} color="#aaa" />
-              <Text style={styles.subText}>{playlist.user}</Text>
-            </View>
-          ) : (
-            <Text
-              style={[
-                styles.status,
-                playlist.is_public ? styles.public : styles.private,
-              ]}
-            >
-              {playlist.is_public ? "Pública" : "Privada"}
-            </Text>
-          )}
+          <View style={styles.row}>
+            <Ionicons name="person-circle-outline" size={16} color="#aaa" />
+            <Text style={styles.subText}>{playlist.user}</Text>
 
-          {/* Contador de favoritos sutil */}
-          <View style={[styles.row, { marginLeft: 15 }]}>
             <Ionicons
               name="heart"
               size={14}
               color={isFav ? "#ff4444" : "#555"}
+              style={{ marginLeft: 15 }}
             />
             <Text style={styles.subText}>{favCount}</Text>
+
+            {!playlist.is_public && (
+              <Text style={[styles.status, styles.private, { marginLeft: 15 }]}>
+                Privada
+              </Text>
+            )}
           </View>
         </View>
       </View>
@@ -102,7 +95,11 @@ const styles = StyleSheet.create({
   bottomRow: { flexDirection: "row", alignItems: "center" },
   row: { flexDirection: "row", alignItems: "center", gap: 4 },
   subText: { color: "#aaa", fontSize: 14 },
-  status: { fontSize: 12, fontWeight: "bold", textTransform: "uppercase" },
+  status: {
+    fontSize: 12,
+    fontWeight: "bold",
+    textTransform: "uppercase",
+  },
   public: { color: Colors.PRIMARY_COLOR },
   private: { color: Colors.ERROR_COLOR },
   favButton: {
