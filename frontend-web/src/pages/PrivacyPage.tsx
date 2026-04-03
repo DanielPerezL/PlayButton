@@ -36,6 +36,28 @@ const PrivacyPage = () => {
             retiene, ni puede retener, información de sus usuarios.
           </li>
         </ul>
+
+        <hr className="my-5" />
+        <div className="bg-light p-4 rounded border">
+          <h2 className="h4 text-primary mb-3">Eliminación de cuenta</h2>
+          <p>
+            Si deseas eliminar tu cuenta y todos los datos asociados, puedes
+            hacerlo de forma sencilla a través de dos canales:
+          </p>
+          <ul className="mb-0">
+            <li className="mb-2">
+              <strong>Desde la App móvil:</strong> Inicia sesión, ve al apartado
+              de <strong>Configuración</strong> y selecciona la última opción
+              para eliminar cuenta.
+            </li>
+            <li>
+              <strong>Desde la Web:</strong> Accede a la web de tu servidor,
+              inicia sesión en tu perfil y encontrarás la opción para dar de
+              baja tu cuenta definitivamente.
+            </li>
+          </ul>
+        </div>
+
         <p className="fs-5 mt-4">
           En resumen: PlayButton respeta tu privacidad y no almacena ni utiliza
           tus datos personales. Cualquier duda o consulta, estamos a tu
