@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Ruta al app.json (ajusta si hace falta)
-APP_JSON_PATH="./app.json"
+# Ruta al package.json 
+PACKAGE_JSON_PATH="./package.json"
 
 # Leer la versión (campo 'version' en expo)
-version=$(jq -r '.expo.version' "$APP_JSON_PATH")
+version=$(jq -r '.version' "$PACKAGE_JSON_PATH")
 
 echo "Versión detectada: $version"
 

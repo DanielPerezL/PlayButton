@@ -1,12 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import {useState, useEffect, useRef} from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-} from "react-native";
-import Slider from "@react-native-community/slider";
+} from 'react-native';
+import Slider from '@react-native-community/slider';
 import TrackPlayer, {
   State,
   Capability,
@@ -14,14 +14,14 @@ import TrackPlayer, {
   usePlaybackState,
   Event,
   AppKilledPlaybackBehavior,
-} from "react-native-track-player";
-import { StyleSheet } from "react-native";
-import { FontAwesome } from "@expo/vector-icons";
-import { formatTime } from "../services/utils";
-import { getSignedSongUrl } from "../services/apiService";
-import Colors from "../services/colors";
+} from 'react-native-track-player';
+import {StyleSheet} from 'react-native';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import {formatTime} from '../services/utils';
+import {getSignedSongUrl} from '../services/apiService';
+import Colors from '../services/colors';
 
-const Player = ({ songs, onSongsEnd }) => {
+const Player = ({songs, onSongsEnd}) => {
   const [loading, setLoading] = useState(false);
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [currentSong, setCurrentSong] = useState(null);
@@ -33,7 +33,7 @@ const Player = ({ songs, onSongsEnd }) => {
   const [playerReady, setPlayerReady] = useState(false);
   const isPausedByUser = useRef(false);
 
-  const DEFAULT_ARTWORK = require("../assets/artwork.png");
+  const DEFAULT_ARTWORK = require('../assets/artwork.png');
 
   useEffect(() => {
     const setupPlayer = async () => {
@@ -77,8 +77,8 @@ const Player = ({ songs, onSongsEnd }) => {
 
       const onDuck = TrackPlayer.addEventListener(
         Event.RemoteDuck,
-        async (event) => {
-          const { state } = await TrackPlayer.getPlaybackState();
+        async event => {
+          const {state} = await TrackPlayer.getPlaybackState();
           const isPlaying =
             state === State.Playing || state === State.Buffering;
 
@@ -113,13 +113,13 @@ const Player = ({ songs, onSongsEnd }) => {
 
   useEffect(() => {
     const onNext = TrackPlayer.addEventListener(Event.RemoteNext, () => {
-      setCurrentSongIndex((prev) => prev + 1);
+      setCurrentSongIndex(prev => prev + 1);
     });
 
     const onPrevious = TrackPlayer.addEventListener(
       Event.RemotePrevious,
       () => {
-        setCurrentSongIndex((prev) => prev - 1);
+        setCurrentSongIndex(prev => prev - 1);
       },
     );
 
@@ -131,15 +131,15 @@ const Player = ({ songs, onSongsEnd }) => {
 
         try {
           const trackId = await TrackPlayer.getTrack(0).then(
-            (track) => track?.id,
+            track => track?.id,
           );
           const songIndex = songs.findIndex(
-            (s) => s.id.toString() === trackId.toString(),
+            s => s.id.toString() === trackId.toString(),
           );
           playSong(songIndex, currentPosition);
         } catch (error) {
           if (__DEV__)
-            console.error("Error al obtener la pista actual:", error);
+            console.error('Error al obtener la pista actual:', error);
           return;
         }
       },
@@ -196,15 +196,15 @@ const Player = ({ songs, onSongsEnd }) => {
 
     let artist = null;
     let title = null;
-    if (song.name && song.name.includes(" - ")) {
-      [artist, title] = song.name.split(" - ");
+    if (song.name && song.name.includes(' - ')) {
+      [artist, title] = song.name.split(' - ');
     }
 
     const track = {
       id: song.id.toString(),
       url: signedUrl,
-      title: title || song.name || "Sin título",
-      artist: artist || "Desconocido",
+      title: title || song.name || 'Sin título',
+      artist: artist || 'Desconocido',
       artwork: DEFAULT_ARTWORK,
     };
 
@@ -217,7 +217,7 @@ const Player = ({ songs, onSongsEnd }) => {
       await TrackPlayer.play();
       setCurrentSong(song);
     } catch (error) {
-      console.error("Error al cambiar de pista:", error);
+      console.error('Error al cambiar de pista:', error);
     } finally {
       setLoading(false);
     }
@@ -249,9 +249,9 @@ const Player = ({ songs, onSongsEnd }) => {
     }
   };
 
-  const playNext = () => setCurrentSongIndex((prev) => prev + 1);
-  const playPrev = () => setCurrentSongIndex((prev) => prev - 1);
-  const seek = async (value) => await TrackPlayer.seekTo(value);
+  const playNext = () => setCurrentSongIndex(prev => prev + 1);
+  const playPrev = () => setCurrentSongIndex(prev => prev - 1);
+  const seek = async value => await TrackPlayer.seekTo(value);
 
   const isLoading =
     (playbackState.state !== State.Playing &&
@@ -265,11 +265,11 @@ const Player = ({ songs, onSongsEnd }) => {
       {/* Título */}
       {isLoading ? (
         <Text style={styles.songTitle}>
-          {currentSong?.name || "Cargando..."}
+          {currentSong?.name || 'Cargando...'}
         </Text>
       ) : (
         <Text style={styles.songTitle}>
-          {currentSong?.name || "No hay canción en reproducción."}
+          {currentSong?.name || 'No hay canción en reproducción.'}
         </Text>
       )}
       {/* Slider */}
@@ -295,20 +295,19 @@ const Player = ({ songs, onSongsEnd }) => {
 
         <TouchableOpacity
           onPress={togglePlayPause}
-          style={styles.playPauseButton}
-        >
+          style={styles.playPauseButton}>
           {isLoading ? (
             <View style={styles.playPauseButton}>
               <ActivityIndicator size="large" color="#fff" />
             </View>
           ) : (
             <FontAwesome
-              name={playbackState.state === State.Playing ? "pause" : "play"}
+              name={playbackState.state === State.Playing ? 'pause' : 'play'}
               size={30}
               color="white"
               style={
                 playbackState.state !== State.Playing
-                  ? { marginLeft: 4 } // corrige el centrado óptico
+                  ? {marginLeft: 4} // corrige el centrado óptico
                   : {}
               }
             />
@@ -319,14 +318,14 @@ const Player = ({ songs, onSongsEnd }) => {
         </TouchableOpacity>
       </View>
       {__DEV__ && (
-        <Text style={{ color: Colors.PRIMARY_PASTEL_COLOR }}>
+        <Text style={{color: Colors.PRIMARY_PASTEL_COLOR}}>
           Estado: {playbackState.state}
         </Text>
       )}
       {/* Botón para mostrar/ocultar cola */}
       <TouchableOpacity onPress={() => setIsQueueVisible(!isQueueVisible)}>
         <Text style={styles.toggleQueueText}>
-          {isQueueVisible ? "Ocultar cola" : "Mostrar cola"}
+          {isQueueVisible ? 'Ocultar cola' : 'Mostrar cola'}
         </Text>
       </TouchableOpacity>
       {/* Lista de canciones */}
@@ -335,9 +334,9 @@ const Player = ({ songs, onSongsEnd }) => {
           style={styles.queue}
           ref={queueRef}
           data={songs.slice(currentSongIndex)}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingBottom: 10 }}
-          renderItem={({ item, index }) => (
+          keyExtractor={item => item.id}
+          contentContainerStyle={{paddingBottom: 10}}
+          renderItem={({item, index}) => (
             <TouchableOpacity
               style={[styles.queueItem, index === 0 && styles.activeItem]}
               onPress={() => {
@@ -363,21 +362,21 @@ const Player = ({ songs, onSongsEnd }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center", // Alinea verticalmente al centro
-    alignItems: "center",
+    justifyContent: 'center', // Alinea verticalmente al centro
+    alignItems: 'center',
     padding: 20,
   },
   songTitle: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 18,
-    fontWeight: "600",
-    textAlign: "center",
+    fontWeight: '600',
+    textAlign: 'center',
     marginBottom: 20,
   },
   sliderContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%",
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
     marginBottom: 20,
   },
   slider: {
@@ -385,53 +384,53 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   time: {
-    color: "#aaa",
+    color: '#aaa',
     fontSize: 12,
     width: 40,
-    textAlign: "center",
+    textAlign: 'center',
   },
   controlsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    width: "60%",
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    width: '60%',
     marginBottom: 20,
   },
   playPauseButton: {
     backgroundColor: Colors.PRIMARY_COLOR,
     padding: 16,
     borderRadius: 50,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     height: 70,
     width: 70,
   },
   toggleQueueText: {
     color: Colors.PRIMARY_COLOR,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     fontSize: 14,
     marginBottom: 10,
   },
   queue: {
     padding: 10,
-    backgroundColor: "#222",
+    backgroundColor: '#222',
     borderRadius: 20,
     width: 330,
   },
   queueItem: {
-    backgroundColor: "#333",
+    backgroundColor: '#333',
     padding: 10,
     borderRadius: 10,
     marginBottom: 10,
-    alignItems: "center",
+    alignItems: 'center',
   },
   activeItem: {
     backgroundColor: Colors.PRIMARY_COLOR,
-    color: "#000",
+    color: '#000',
   },
   queueItemText: {
     fontSize: 16,
-    color: "#fff",
+    color: '#fff',
   },
 });
 

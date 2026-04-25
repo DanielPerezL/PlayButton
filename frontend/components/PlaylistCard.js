@@ -1,11 +1,11 @@
-import { TouchableOpacity, Text, StyleSheet, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import Colors from "../services/colors";
-import { useState } from "react";
-import { togglePlaylistFavorite } from "../services/apiService";
+import {TouchableOpacity, Text, StyleSheet, View} from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import {useNavigation} from '@react-navigation/native';
+import Colors from '../services/colors';
+import {useState} from 'react';
+import {togglePlaylistFavorite} from '../services/apiService';
 
-const PlaylistCard = ({ playlist }) => {
+const PlaylistCard = ({playlist}) => {
   const navigation = useNavigation();
   const [isFav, setIsFav] = useState(playlist.is_favorite);
   const [favCount, setFavCount] = useState(playlist.favorites_count);
@@ -33,9 +33,8 @@ const PlaylistCard = ({ playlist }) => {
   return (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => navigation.navigate("PlaylistDetail", { playlist })}
-      activeOpacity={0.7}
-    >
+      onPress={() => navigation.navigate('PlaylistDetail', {playlist})}
+      activeOpacity={0.7}>
       <View style={styles.infoContainer}>
         <Text style={styles.name} numberOfLines={1}>
           {playlist.name}
@@ -49,13 +48,13 @@ const PlaylistCard = ({ playlist }) => {
             <Ionicons
               name="heart"
               size={14}
-              color={isFav ? "#ff4444" : "#555"}
-              style={{ marginLeft: 15 }}
+              color={isFav ? '#ff4444' : '#555'}
+              style={{marginLeft: 15}}
             />
             <Text style={styles.subText}>{favCount}</Text>
 
             {!playlist.is_public && (
-              <Text style={[styles.status, styles.private, { marginLeft: 15 }]}>
+              <Text style={[styles.status, styles.private, {marginLeft: 15}]}>
                 Privada
               </Text>
             )}
@@ -67,12 +66,11 @@ const PlaylistCard = ({ playlist }) => {
       <TouchableOpacity
         onPress={handleToggleFav}
         style={styles.favButton}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-      >
+        hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
         <Ionicons
-          name={isFav ? "heart" : "heart-outline"}
+          name={isFav ? 'heart' : 'heart-outline'}
           size={24}
-          color={isFav ? "#ff4444" : "#aaa"}
+          color={isFav ? '#ff4444' : '#aaa'}
         />
       </TouchableOpacity>
 
@@ -83,25 +81,25 @@ const PlaylistCard = ({ playlist }) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#1e1e1e",
+    backgroundColor: '#1e1e1e',
     marginBottom: 10,
     borderRadius: 12,
     padding: 16,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  infoContainer: { flex: 1 },
-  name: { color: "#fff", fontSize: 18, fontWeight: "bold", marginBottom: 4 },
-  bottomRow: { flexDirection: "row", alignItems: "center" },
-  row: { flexDirection: "row", alignItems: "center", gap: 4 },
-  subText: { color: "#aaa", fontSize: 14 },
+  infoContainer: {flex: 1},
+  name: {color: '#fff', fontSize: 18, fontWeight: 'bold', marginBottom: 4},
+  bottomRow: {flexDirection: 'row', alignItems: 'center'},
+  row: {flexDirection: 'row', alignItems: 'center', gap: 4},
+  subText: {color: '#aaa', fontSize: 14},
   status: {
     fontSize: 12,
-    fontWeight: "bold",
-    textTransform: "uppercase",
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
   },
-  public: { color: Colors.PRIMARY_COLOR },
-  private: { color: Colors.ERROR_COLOR },
+  public: {color: Colors.PRIMARY_COLOR},
+  private: {color: Colors.ERROR_COLOR},
   favButton: {
     paddingHorizontal: 12,
   },

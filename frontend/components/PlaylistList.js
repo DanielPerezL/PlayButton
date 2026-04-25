@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import {useState, useCallback, useEffect} from 'react';
 import {
   FlatList,
   TextInput,
@@ -7,26 +7,26 @@ import {
   ActivityIndicator,
   Text,
   TouchableOpacity,
-} from "react-native";
-import PlaylistCard from "./PlaylistCard";
-import Colors from "../services/colors";
-import { Ionicons } from "@expo/vector-icons";
+} from 'react-native';
+import PlaylistCard from './PlaylistCard';
+import Colors from '../services/colors';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import {
   subscribeToPlaylistsModifiedEvent,
   unsubscribeFromPlaylistsModifiedEvent,
-} from "../events/playlistsModifiedEvent";
+} from '../events/playlistsModifiedEvent';
 import {
   subscribeToFavPlaylistsModifiedEvent,
   unsubscribeFromFavPlaylistsModifiedEvent,
-} from "../events/favPlaylistsModifiedEvent";
-import { useIsFocused } from "@react-navigation/native";
+} from '../events/favPlaylistsModifiedEvent';
+import {useIsFocused} from '@react-navigation/native';
 
-const PlaylistList = ({ fetchFunction, extraHeader, isArtists = false }) => {
+const PlaylistList = ({fetchFunction, extraHeader, isArtists = false}) => {
   const [playlists, setPlaylists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const limit = __DEV__ ? 5 : 20;
@@ -47,9 +47,9 @@ const PlaylistList = ({ fetchFunction, extraHeader, isArtists = false }) => {
       const data = await fetchFunction(currentOffset, limit, searchTerm);
 
       const newList = data.playlists || [];
-      setPlaylists((prev) => (reset ? newList : [...prev, ...newList]));
+      setPlaylists(prev => (reset ? newList : [...prev, ...newList]));
       setHasMore(data.has_more);
-      setOffset((prev) => currentOffset + newList.length);
+      setOffset(prev => currentOffset + newList.length);
     } catch (error) {
       console.error(error);
     } finally {
@@ -106,8 +106,8 @@ const PlaylistList = ({ fetchFunction, extraHeader, isArtists = false }) => {
   }, [isFocused, isDirty]);
 
   const handleClearSearch = () => {
-    setSearch("");
-    loadData(true, "");
+    setSearch('');
+    loadData(true, '');
   };
 
   return (
@@ -117,14 +117,13 @@ const PlaylistList = ({ fetchFunction, extraHeader, isArtists = false }) => {
         <View style={styles.searchContainer}>
           <TouchableOpacity
             onPress={() => loadData(true)}
-            style={styles.searchIconButton}
-          >
+            style={styles.searchIconButton}>
             <Ionicons name="search" size={20} color="#888" />
           </TouchableOpacity>
 
           <TextInput
             style={styles.searchInput}
-            placeholder={isArtists ? "Buscar artista..." : "Buscar playlist..."}
+            placeholder={isArtists ? 'Buscar artista...' : 'Buscar playlist...'}
             placeholderTextColor="#888"
             value={search}
             onChangeText={setSearch}
@@ -136,8 +135,7 @@ const PlaylistList = ({ fetchFunction, extraHeader, isArtists = false }) => {
           {search.length > 0 && (
             <TouchableOpacity
               onPress={handleClearSearch}
-              style={styles.clearButton}
-            >
+              style={styles.clearButton}>
               <Ionicons name="close-circle" size={20} color="#888" />
             </TouchableOpacity>
           )}
@@ -152,8 +150,8 @@ const PlaylistList = ({ fetchFunction, extraHeader, isArtists = false }) => {
       ) : (
         <FlatList
           data={playlists}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => <PlaylistCard playlist={item} />}
+          keyExtractor={item => item.id.toString()}
+          renderItem={({item}) => <PlaylistCard playlist={item} />}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.3}
           refreshing={refreshing}
@@ -176,32 +174,32 @@ const PlaylistList = ({ fetchFunction, extraHeader, isArtists = false }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#121212", // Asegura que el fondo sea uniforme
+    backgroundColor: '#121212', // Asegura que el fondo sea uniforme
   },
   fixedHeader: {
     paddingHorizontal: 16,
     paddingTop: 10,
-    backgroundColor: "#121212",
+    backgroundColor: '#121212',
   },
   centerLoader: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   listContent: {
     paddingHorizontal: 16,
     paddingBottom: 100,
   },
   searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#222",
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#222',
     borderRadius: 10,
     paddingHorizontal: 12, // Volvemos a tus 12 de padding
     marginBottom: 20, // Mantenemos tu margen original
   },
   searchInput: {
-    color: "#fff",
+    color: '#fff',
     height: 45,
     flex: 1,
   },
@@ -210,10 +208,10 @@ const styles = StyleSheet.create({
     marginLeft: -10, // Ajuste para compensar el padding del container
   },
   emptyText: {
-    color: "#888",
-    textAlign: "center",
+    color: '#888',
+    textAlign: 'center',
     marginTop: 20,
-    fontStyle: "italic",
+    fontStyle: 'italic',
   },
 });
 

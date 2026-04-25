@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -8,10 +8,10 @@ import {
   ActivityIndicator,
   Modal,
   TextInput,
-} from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
-import { Switch } from "react-native";
+} from 'react-native';
+import {useNavigation, useRoute} from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import {Switch} from 'react-native';
 import {
   getCachedSongs,
   getPlaylistSongs,
@@ -22,17 +22,17 @@ import {
   deletePlaylist,
   getIsAdmin,
   togglePlaylistFavorite,
-} from "../services/apiService";
-import { emitPlaylistsModifiedEvent } from "../events/playlistsModifiedEvent";
-import Colors from "../services/colors";
-import { useAlert } from "../services/alertContext";
+} from '../services/apiService';
+import {emitPlaylistsModifiedEvent} from '../events/playlistsModifiedEvent';
+import Colors from '../services/colors';
+import {useAlert} from '../services/alertContext';
 
 const PlaylistDetailScreen = () => {
-  const { showAlert } = useAlert();
+  const {showAlert} = useAlert();
 
   const route = useRoute();
   const navigation = useNavigation();
-  const { playlist } = route.params;
+  const {playlist} = route.params;
 
   const [songs, setSongs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +41,7 @@ const PlaylistDetailScreen = () => {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState(playlist.name);
   const [isPublic, setIsPublic] = useState(playlist.is_public);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [showActions, setShowActions] = useState(false);
 
   const [isFav, setIsFav] = useState(playlist.is_favorite);
@@ -55,7 +55,7 @@ const PlaylistDetailScreen = () => {
     const previousCount = favCount;
 
     setIsFav(!previousFav);
-    setFavCount((prev) => (previousFav ? prev - 1 : prev + 1));
+    setFavCount(prev => (previousFav ? prev - 1 : prev + 1));
     setFavLoading(true);
 
     const newCount = await togglePlaylistFavorite(playlist.id);
@@ -63,7 +63,7 @@ const PlaylistDetailScreen = () => {
     if (newCount === null) {
       setIsFav(previousFav);
       setFavCount(previousCount);
-      showAlert("Error", "No se pudo actualizar favoritos");
+      showAlert('Error', 'No se pudo actualizar favoritos');
     } else {
       setFavCount(newCount);
     }
@@ -87,7 +87,7 @@ const PlaylistDetailScreen = () => {
 
       const fetchedSongs = await getPlaylistSongs(playlist.id);
       if (fetchSongs === null) {
-        throw new Error("Error obteniendo canciones de la playlist");
+        throw new Error('Error obteniendo canciones de la playlist');
       }
       setSongs(fetchedSongs);
 
@@ -96,7 +96,7 @@ const PlaylistDetailScreen = () => {
       }
       setError(false);
     } catch (err) {
-      console.error("Error fetching songs:", err);
+      console.error('Error fetching songs:', err);
       setSongs([]);
       setError(true);
     } finally {
@@ -105,7 +105,7 @@ const PlaylistDetailScreen = () => {
   };
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
+    const unsubscribe = navigation.addListener('focus', () => {
       fetchSongs();
     });
 
@@ -114,30 +114,30 @@ const PlaylistDetailScreen = () => {
 
   const handlePlay = () => {
     if (songs.length > 0) {
-      navigation.navigate("Reproductor", {
+      navigation.navigate('Reproductor', {
         songs: songs,
         playlist_name: playlist.name,
       });
     }
   };
 
-  const handleDeleteSong = (songId) => {
+  const handleDeleteSong = songId => {
     showAlert(
-      "Eliminar canción",
-      "¿Estás seguro de que quieres eliminar esta canción de la playlist?",
+      'Eliminar canción',
+      '¿Estás seguro de que quieres eliminar esta canción de la playlist?',
       [
-        { text: "Cancelar", style: "cancel" },
+        {text: 'Cancelar', style: 'cancel'},
         {
-          text: "Eliminar",
-          style: "destructive",
+          text: 'Eliminar',
+          style: 'destructive',
           onPress: async () => {
             try {
               await removeSongFromPlaylist(playlist.id, songId);
-              const updated = songs.filter((song) => song.id !== songId);
+              const updated = songs.filter(song => song.id !== songId);
               setSongs(updated);
               await setCachedSongs(playlist.id, updated);
             } catch (err) {
-              console.error("Error al eliminar canción:", err);
+              console.error('Error al eliminar canción:', err);
             }
           },
         },
@@ -147,28 +147,27 @@ const PlaylistDetailScreen = () => {
 
   const filteredSongs =
     songs &&
-    songs.filter((song) =>
+    songs.filter(song =>
       song.name?.toLowerCase().includes(searchTerm.toLowerCase()),
     );
-  const renderSongItem = ({ item }) => {
-    let artist = "Desconocido";
+  const renderSongItem = ({item}) => {
+    let artist = 'Desconocido';
     let title = item.name;
 
-    if (item.name && item.name.includes(" - ")) {
-      [artist, title] = item.name.split(" - ");
+    if (item.name && item.name.includes(' - ')) {
+      [artist, title] = item.name.split(' - ');
     }
 
     return (
       <View style={styles.songItem}>
-        <View style={{ flex: 1 }}>
+        <View style={{flex: 1}}>
           <Text style={styles.songTitle}>{title}</Text>
           <Text style={styles.songArtist}>{artist}</Text>
         </View>
         {isOwner && (
           <TouchableOpacity
             onPress={() => handleDeleteSong(item.id)}
-            style={styles.deleteButton}
-          >
+            style={styles.deleteButton}>
             <Ionicons name="trash" size={20} color={Colors.ERROR_COLOR} />
           </TouchableOpacity>
         )}
@@ -199,16 +198,15 @@ const PlaylistDetailScreen = () => {
         style={styles.subtitleRow}
         disabled={!playlist.user_id || playlist.user_id == 1 || isOwner}
         onPress={() =>
-          navigation.navigate("UserPlaylists", {
-            user: { id: playlist.user_id, name: playlist.user },
+          navigation.navigate('UserPlaylists', {
+            user: {id: playlist.user_id, name: playlist.user},
           })
-        }
-      >
+        }>
         <Ionicons
           name="person-circle"
           size={18}
           color="#aaa"
-          style={{ marginRight: 6 }}
+          style={{marginRight: 6}}
         />
         <Text style={styles.subtitle}>{playlist.user}</Text>
       </TouchableOpacity>
@@ -216,15 +214,14 @@ const PlaylistDetailScreen = () => {
       {/* INFO DE PLAYLIST INCLUYENDO FAVS */}
       <View style={styles.infoRow}>
         <Text style={styles.subtitle}>
-          {playlist.is_public ? "Pública" : "Privada"} · {songs.length}{" "}
+          {playlist.is_public ? 'Pública' : 'Privada'} · {songs.length}{' '}
           canciones
         </Text>
         <TouchableOpacity
           style={styles.favBadge}
           onPress={handleToggleFavorite}
-          disabled={favLoading}
-        >
-          <Ionicons name="heart" size={14} color={isFav ? "#ff4444" : "#888"} />
+          disabled={favLoading}>
+          <Ionicons name="heart" size={14} color={isFav ? '#ff4444' : '#888'} />
           <Text style={styles.favBadgeText}>{favCount}</Text>
         </TouchableOpacity>
       </View>
@@ -239,15 +236,15 @@ const PlaylistDetailScreen = () => {
           style={styles.searchInput}
           placeholder={
             playlist.is_artist_playlist
-              ? "Buscar canción en el artista"
-              : "Buscar canción en la playlist"
+              ? 'Buscar canción en el artista'
+              : 'Buscar canción en la playlist'
           }
           placeholderTextColor="#aaa"
           value={searchTerm}
           onChangeText={setSearchTerm}
         />
         {searchTerm.length > 0 && (
-          <TouchableOpacity onPress={() => setSearchTerm("")}>
+          <TouchableOpacity onPress={() => setSearchTerm('')}>
             <Ionicons
               name="close-circle"
               size={20}
@@ -262,19 +259,17 @@ const PlaylistDetailScreen = () => {
         <View>
           <View
             style={{
-              flexDirection: "row",
+              flexDirection: 'row',
               gap: 10,
-            }}
-          >
+            }}>
             <TouchableOpacity
               style={styles.addButton}
               onPress={() =>
-                navigation.navigate("AddSongsScreen", {
+                navigation.navigate('AddSongsScreen', {
                   ...route.params,
                   playlistId: playlist.id,
                 })
-              }
-            >
+              }>
               <Ionicons name="add" size={20} color="white" />
               <Text style={styles.addButtonText}>Añadir canciones</Text>
             </TouchableOpacity>
@@ -286,10 +281,9 @@ const PlaylistDetailScreen = () => {
                   flex: 1,
                 },
               ]}
-              onPress={() => setShowActions(!showActions)}
-            >
+              onPress={() => setShowActions(!showActions)}>
               <Ionicons
-                name={showActions ? "chevron-up" : "chevron-down"}
+                name={showActions ? 'chevron-up' : 'chevron-down'}
                 size={20}
                 color="white"
               />
@@ -298,14 +292,13 @@ const PlaylistDetailScreen = () => {
           </View>
 
           {showActions && (
-            <View style={{ flexDirection: "row", gap: 10 }}>
+            <View style={{flexDirection: 'row', gap: 10}}>
               <TouchableOpacity
                 style={[
                   styles.addButton,
-                  { backgroundColor: Colors.SECONDARY_COLOR, flex: 1 },
+                  {backgroundColor: Colors.SECONDARY_COLOR, flex: 1},
                 ]}
-                onPress={() => setEditModalVisible(true)}
-              >
+                onPress={() => setEditModalVisible(true)}>
                 <Ionicons name="create" size={20} color="white" />
                 <Text style={styles.addButtonText}>Editar</Text>
               </TouchableOpacity>
@@ -313,34 +306,33 @@ const PlaylistDetailScreen = () => {
               <TouchableOpacity
                 style={[
                   styles.addButton,
-                  { backgroundColor: "#dc3545", flex: 1 },
+                  {backgroundColor: '#dc3545', flex: 1},
                 ]}
                 onPress={() => {
                   showAlert(
-                    "Eliminar Playlist",
-                    "¿Estás seguro de que quieres eliminar esta playlist?",
+                    'Eliminar Playlist',
+                    '¿Estás seguro de que quieres eliminar esta playlist?',
                     [
                       {
-                        text: "Cancelar",
-                        style: "cancel",
+                        text: 'Cancelar',
+                        style: 'cancel',
                       },
                       {
-                        text: "Eliminar",
-                        style: "destructive",
+                        text: 'Eliminar',
+                        style: 'destructive',
                         onPress: async () => {
                           const success = await deletePlaylist(playlist.id);
                           if (success) {
                             emitPlaylistsModifiedEvent();
                             navigation.goBack();
                           } else {
-                            showAlert("Error al eliminar la playlist");
+                            showAlert('Error al eliminar la playlist');
                           }
                         },
                       },
                     ],
                   );
-                }}
-              >
+                }}>
                 <Ionicons name="trash" size={20} color="white" />
                 <Text style={styles.addButtonText}>Eliminar</Text>
               </TouchableOpacity>
@@ -364,7 +356,7 @@ const PlaylistDetailScreen = () => {
           <FlatList
             data={filteredSongs}
             renderItem={renderSongItem}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={item => item.id.toString()}
           />
         )}
       </View>
@@ -372,20 +364,18 @@ const PlaylistDetailScreen = () => {
       <TouchableOpacity
         style={[styles.playButton, songs.length === 0 && styles.buttonDisabled]}
         onPress={handlePlay}
-        disabled={songs.length === 0}
-      >
+        disabled={songs.length === 0}>
         <Ionicons
           name="play"
           size={20}
-          color={songs.length === 0 ? "#888" : "#fff"}
-          style={{ marginRight: 10 }}
+          color={songs.length === 0 ? '#888' : '#fff'}
+          style={{marginRight: 10}}
         />
         <Text
           style={[
             styles.buttonText,
             songs.length === 0 && styles.buttonTextDisabled,
-          ]}
-        >
+          ]}>
           Reproducir
         </Text>
       </TouchableOpacity>
@@ -395,8 +385,7 @@ const PlaylistDetailScreen = () => {
         visible={editModalVisible}
         animationType="slide"
         transparent={true}
-        onRequestClose={() => setEditModalVisible(false)}
-      >
+        onRequestClose={() => setEditModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Editar playlist</Text>
@@ -409,31 +398,29 @@ const PlaylistDetailScreen = () => {
             />
             <View
               style={{
-                flexDirection: "row",
-                alignItems: "center",
+                flexDirection: 'row',
+                alignItems: 'center',
                 marginBottom: 10,
-              }}
-            >
-              <Text style={{ color: "white", marginRight: 10 }}>¿Pública?</Text>
+              }}>
+              <Text style={{color: 'white', marginRight: 10}}>¿Pública?</Text>
               <Switch
                 value={isPublic}
                 onValueChange={setIsPublic}
-                trackColor={{ false: "#555", true: Colors.PRIMARY_COLOR }}
-                thumbColor={isPublic ? "#fff" : "#ccc"}
+                trackColor={{false: '#555', true: Colors.PRIMARY_COLOR}}
+                thumbColor={isPublic ? '#fff' : '#ccc'}
               />
             </View>
 
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={[styles.modalButton, { backgroundColor: "#555" }]}
-                onPress={() => setEditModalVisible(false)}
-              >
+                style={[styles.modalButton, {backgroundColor: '#555'}]}
+                onPress={() => setEditModalVisible(false)}>
                 <Text style={styles.modalButtonText}>Cancelar</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
                   styles.modalButton,
-                  { backgroundColor: Colors.PRIMARY_COLOR },
+                  {backgroundColor: Colors.PRIMARY_COLOR},
                 ]}
                 onPress={async () => {
                   if (!newPlaylistName.trim()) return;
@@ -448,10 +435,9 @@ const PlaylistDetailScreen = () => {
                     playlist.is_public = isPublic;
                     setEditModalVisible(false);
                   } else {
-                    showAlert("Error al actualizar");
+                    showAlert('Error al actualizar');
                   }
-                }}
-              >
+                }}>
                 <Text style={styles.modalButtonText}>Guardar</Text>
               </TouchableOpacity>
             </View>
@@ -467,68 +453,68 @@ const PlaylistDetailScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1c1c1c",
+    backgroundColor: '#1c1c1c',
     padding: 20,
   },
   textContainer: {
     flex: 1, // <--- Permite que este contenedor se encoja si el texto es largo
   },
   headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between", // Separa el grupo del título del corazón
-    width: "88%",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between', // Separa el grupo del título del corazón
+    width: '88%',
     marginBottom: 10,
   },
   titleWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     flex: 1, // <--- IMPORTANTE: Ocupa todo el espacio menos lo que use el corazón
     marginRight: 10, // Espacio de seguridad entre el título y el corazón
   },
   infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
     marginBottom: 10,
   },
   favBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#2a2a2a",
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2a2a2a',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
     gap: 4,
   },
   favBadgeText: {
-    color: "#aaa",
+    color: '#aaa',
     fontSize: 14,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   title: {
-    color: "white",
+    color: 'white',
     fontSize: 28,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 5,
-    flexDirection: "row",
+    flexDirection: 'row',
   },
   titleWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 10,
   },
   titleIcon: {
     marginRight: 10,
   },
   subtitle: {
-    color: "#aaa",
+    color: '#aaa',
     fontSize: 16,
     marginBottom: 3,
   },
   subtitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 3,
   },
   listContainer: {
@@ -536,31 +522,31 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   emptyText: {
-    color: "#888",
+    color: '#888',
     fontSize: 16,
-    textAlign: "center",
+    textAlign: 'center',
     marginTop: 40,
   },
   songItem: {
-    backgroundColor: "#2a2a2a",
+    backgroundColor: '#2a2a2a',
     padding: 16,
     borderRadius: 14,
     marginBottom: 12,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.2,
     shadowRadius: 4,
   },
   songTitle: {
-    color: "white",
+    color: 'white',
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   songArtist: {
-    color: "#aaa",
+    color: '#aaa',
     fontSize: 14,
     marginTop: 2,
   },
@@ -568,81 +554,81 @@ const styles = StyleSheet.create({
     marginLeft: 15,
   },
   addButton: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: Colors.PRIMARY_COLOR,
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 12,
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
     marginTop: 10,
     elevation: 3,
   },
   addButtonText: {
-    color: "white",
+    color: 'white',
     fontSize: 16,
     marginLeft: 8,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   playButton: {
     backgroundColor: Colors.PRIMARY_COLOR,
     paddingVertical: 16,
     paddingHorizontal: 25,
     borderRadius: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 25,
     elevation: 3,
   },
   buttonDisabled: {
-    backgroundColor: "#444",
+    backgroundColor: '#444',
   },
   buttonText: {
-    color: "white",
+    color: 'white',
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   buttonTextDisabled: {
-    color: "#aaa",
+    color: '#aaa',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 20,
   },
   modalContent: {
-    backgroundColor: "#2a2a2a",
+    backgroundColor: '#2a2a2a',
     padding: 20,
     borderRadius: 14,
-    width: "100%",
+    width: '100%',
     maxWidth: 400,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOpacity: 0.5,
     shadowRadius: 10,
     elevation: 10,
   },
   modalTitle: {
-    color: "white",
+    color: 'white',
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 15,
   },
   input: {
-    backgroundColor: "#1f1f1f",
+    backgroundColor: '#1f1f1f',
     borderWidth: 1,
-    borderColor: "#444",
-    color: "white",
+    borderColor: '#444',
+    color: 'white',
     padding: 12,
     borderRadius: 8,
     fontSize: 16,
     marginBottom: 15,
   },
   modalButtons: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
     gap: 10,
   },
   modalButton: {
@@ -652,17 +638,17 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PRIMARY_COLOR,
   },
   cancelButton: {
-    backgroundColor: "#555",
+    backgroundColor: '#555',
   },
   modalButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
+    color: '#fff',
+    fontWeight: 'bold',
     fontSize: 16,
   },
   searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#2a2a2a",
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2a2a2a',
     borderRadius: 10,
     paddingHorizontal: 10,
     marginTop: 5,
@@ -672,7 +658,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: "#fff",
+    color: '#fff',
     fontSize: 16,
     paddingVertical: 10,
   },

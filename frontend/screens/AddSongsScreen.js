@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -7,8 +7,8 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-} from "react-native";
-import { useRoute } from "@react-navigation/native";
+} from 'react-native';
+import {useRoute} from '@react-navigation/native';
 import {
   searchSongsByName,
   addSongToPlaylist,
@@ -16,21 +16,21 @@ import {
   getCachedSongs,
   getHideAddSongAlert,
   setHideAddSongAlert,
-} from "../services/apiService";
-import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import Colors from "../services/colors";
-import { useAlert } from "../services/alertContext";
+} from '../services/apiService';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import {useNavigation} from '@react-navigation/native';
+import Colors from '../services/colors';
+import {useAlert} from '../services/alertContext';
 
 const AddSongsScreen = () => {
-  const { showAlert } = useAlert();
+  const {showAlert} = useAlert();
 
   const navigation = useNavigation();
   const route = useRoute();
-  const { playlistId } = route.params;
+  const {playlistId} = route.params;
   const [playlistSongs, setPlaylistSongs] = useState([]);
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(false);
@@ -45,7 +45,7 @@ const AddSongsScreen = () => {
       const cached = await getCachedSongs(playlistId);
       if (!cached) return;
 
-      const ids = cached.map((song) => song.id);
+      const ids = cached.map(song => song.id);
       setPlaylistSongs(ids);
     };
     getSongs();
@@ -58,10 +58,7 @@ const AddSongsScreen = () => {
     setLoading(true);
     setIsSearching(true);
     setHasSearched(true);
-    const { songs, hasMore: moreSongs } = await searchSongsByName(
-      searchTerm,
-      0
-    );
+    const {songs, hasMore: moreSongs} = await searchSongsByName(searchTerm, 0);
 
     setResults(songs);
     setHasMore(moreSongs);
@@ -74,18 +71,18 @@ const AddSongsScreen = () => {
     if (loading || !hasMore) return;
     setLoading(true);
 
-    const { songs, hasMore: moreSongs } = await searchSongsByName(
+    const {songs, hasMore: moreSongs} = await searchSongsByName(
       searchTerm,
-      offset
+      offset,
     );
 
-    setResults((prevResults) => [...prevResults, ...songs]);
+    setResults(prevResults => [...prevResults, ...songs]);
     setHasMore(moreSongs);
-    setOffset((prevOffset) => prevOffset + songs.length);
+    setOffset(prevOffset => prevOffset + songs.length);
     setLoading(false);
   };
 
-  const handleAddSong = async (songId) => {
+  const handleAddSong = async songId => {
     try {
       setAddingSong(songId); // Activar el indicador de carga
 
@@ -93,25 +90,25 @@ const AddSongsScreen = () => {
       await clearPlaylistIdCache(playlistId);
       const hideAlert = await getHideAddSongAlert();
       if (!hideAlert) {
-        showAlert("Canción añadida", "La canción ha sido añadida con éxito", [
+        showAlert('Canción añadida', 'La canción ha sido añadida con éxito', [
           {
-            text: "No volver a mostrar",
-            style: "default",
+            text: 'No volver a mostrar',
+            style: 'default',
             onPress: async () => {
               setHideAddSongAlert(true);
             },
           },
           {
-            text: "Cerrar",
-            style: "cancel",
+            text: 'Cerrar',
+            style: 'cancel',
           },
         ]);
       }
       setHasAddedSongs(true);
-      setPlaylistSongs((prev) => [...prev, songId]);
+      setPlaylistSongs(prev => [...prev, songId]);
     } catch (err) {
       console.error(err);
-      showAlert("Error al añadir canción", err.message);
+      showAlert('Error al añadir canción', err.message);
     } finally {
       setAddingSong(false); // Desactivar el indicador de carga
     }
@@ -120,7 +117,7 @@ const AddSongsScreen = () => {
   useEffect(() => {
     return () => {
       if (hasAddedSongs) {
-        navigation.navigate("PlaylistDetail", {
+        navigation.navigate('PlaylistDetail', {
           ...route.params,
           refresh: true,
         });
@@ -133,10 +130,10 @@ const AddSongsScreen = () => {
   }, []);
 
   const filteredResults = results.filter(
-    (item) => !playlistSongs.includes(item.id)
+    item => !playlistSongs.includes(item.id),
   );
 
-  const renderItem = ({ item }) => {
+  const renderItem = ({item}) => {
     const color = Colors.PRIMARY_PASTEL_COLOR;
 
     return (
@@ -161,7 +158,7 @@ const AddSongsScreen = () => {
           style={styles.input}
           placeholder="Nombre de la canción"
           value={searchTerm}
-          onChangeText={(text) => {
+          onChangeText={text => {
             setSearchTerm(text);
             setHasSearched(false);
           }}
@@ -174,7 +171,7 @@ const AddSongsScreen = () => {
       </View>
       <FlatList
         data={filteredResults}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={item => item.id.toString()}
         renderItem={renderItem}
         ListEmptyComponent={() => {
           if (!hasSearched) {
@@ -191,8 +188,7 @@ const AddSongsScreen = () => {
                 </Text>
                 <TouchableOpacity
                   style={styles.suggestionButton}
-                  onPress={() => navigation.navigate("SugerenciasScreen")}
-                >
+                  onPress={() => navigation.navigate('SugerenciasScreen')}>
                   <Text style={styles.suggestionText}>Crear sugerencia</Text>
                 </TouchableOpacity>
                 {results.length > 0 && (
@@ -211,8 +207,7 @@ const AddSongsScreen = () => {
           hasMore && !loading ? (
             <TouchableOpacity
               style={styles.loadMoreButton}
-              onPress={handleLoadMore}
-            >
+              onPress={handleLoadMore}>
               <Text style={styles.loadMoreText}>Cargar más</Text>
             </TouchableOpacity>
           ) : loading ? (
@@ -227,23 +222,23 @@ const AddSongsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#222",
+    backgroundColor: '#222',
     padding: 20,
   },
   title: {
     fontSize: 22,
-    color: "#fff",
-    fontWeight: "bold",
+    color: '#fff',
+    fontWeight: 'bold',
     marginBottom: 10,
   },
   searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 15,
   },
   input: {
-    backgroundColor: "#333",
-    color: "#fff",
+    backgroundColor: '#333',
+    color: '#fff',
     padding: 10,
     borderRadius: 8,
     flex: 1,
@@ -255,29 +250,29 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PRIMARY_COLOR,
   },
   songItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    backgroundColor: "#444",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: '#444',
     padding: 12,
     borderRadius: 8,
     marginBottom: 10,
-    alignItems: "center",
+    alignItems: 'center',
   },
   songText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 16,
     maxWidth: 310,
   },
   noResults: {
-    color: "#aaa",
-    textAlign: "center",
+    color: '#aaa',
+    textAlign: 'center',
     marginTop: 20,
   },
   infoText: {
     marginTop: 30,
     fontSize: 14,
-    color: "#888",
-    textAlign: "center",
+    color: '#888',
+    textAlign: 'center',
     maxWidth: 340,
   },
   loadMoreButton: {
@@ -285,24 +280,24 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
-    alignSelf: "center",
+    alignSelf: 'center',
     marginBottom: 20,
     marginTop: 20,
   },
   loadMoreText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   startMessage: {
-    color: "#aaa",
-    textAlign: "center",
+    color: '#aaa',
+    textAlign: 'center',
     fontSize: 16,
     marginTop: 50,
   },
 
   noResultsContainer: {
-    alignItems: "center",
+    alignItems: 'center',
     marginTop: 30,
   },
 
@@ -315,8 +310,8 @@ const styles = StyleSheet.create({
   },
 
   suggestionText: {
-    color: "#fff",
-    fontWeight: "bold",
+    color: '#fff',
+    fontWeight: 'bold',
     fontSize: 16,
   },
 });

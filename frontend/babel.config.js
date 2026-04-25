@@ -1,14 +1,6 @@
-module.exports = function (api) {
-    api.cache(true);
-    return {
-      presets: ['babel-preset-expo'],
-      plugins: [
-        [
-          'inline-dotenv',
-          {
-            path: '.env', // Ruta al archivo .env
-          },
-        ],
-      ],
-    };
-  };
+module.exports = {
+  presets: ['module:@react-native/babel-preset'],
+  plugins: [
+    'react-native-reanimated/plugin', // ← siempre el último
+  ],
+};

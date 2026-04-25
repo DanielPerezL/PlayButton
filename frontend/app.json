@@ -1,22 +1,4 @@
 {
-  "expo": {
-    "name": "PlayButton",
-    "icon": "./assets/logo.png",
-    "orientation": "portrait",
-    "slug": "play-button",
-    "version": "0.6.3b",
-    "extra": {
-      "eas": {
-        "projectId": "3d2db851-07db-40ff-8734-dc311f12e721"
-      }
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptative-icon.png",
-        "backgroundColor": "#333"
-      },
-      "package": "com.zice.playbutton",
-      "versionCode": 37
-    }
-  }
+  "name": "PlayButton",
+  "displayName": "PlayButton"
 }

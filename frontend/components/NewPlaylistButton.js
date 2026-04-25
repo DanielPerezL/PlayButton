@@ -1,11 +1,11 @@
-import React, { useRef } from "react";
-import { TouchableOpacity, StyleSheet, Animated, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import Colors from "../services/colors";
+import React, {useRef} from 'react';
+import {TouchableOpacity, StyleSheet, Animated, View} from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import Colors from '../services/colors';
 
 const NewPlaylistButton = ({
   onPress,
-  iconName = "add",
+  iconName = 'add',
   backgroundColor = Colors.PRIMARY_COLOR,
 }) => {
   // Animación de escala para feedback táctil profesional
@@ -30,10 +30,9 @@ const NewPlaylistButton = ({
 
   return (
     <Animated.View
-      style={[styles.container, { transform: [{ scale: scaleValue }] }]}
-    >
+      style={[styles.container, {transform: [{scale: scaleValue}]}]}>
       <TouchableOpacity
-        style={[styles.button, { backgroundColor }]}
+        style={[styles.button, {backgroundColor}]}
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
@@ -47,13 +46,13 @@ const NewPlaylistButton = ({
 
 const styles = StyleSheet.create({
   container: {
-    position: "absolute",
+    position: 'absolute',
     right: 20,
     bottom: 30,
     // Elevación y sombras
     elevation: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.3,
     shadowRadius: 4.65,
     zIndex: 1000,
@@ -62,8 +61,8 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
