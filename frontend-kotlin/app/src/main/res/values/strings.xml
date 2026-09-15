@@ -68,6 +68,7 @@
     <string name="playlist_delete">Eliminar</string>
     <string name="playlist_name">Nombre de la playlist</string>
     <string name="playlist_public_switch">Playlist pública</string>
+    <string name="playlist_cover_choose">Elegir portada</string>
     <string name="playlist_cover_change">Cambiar portada</string>
     <string name="playlist_cover_remove">Quitar portada</string>
     <string name="playlist_delete_confirm">¿Seguro que quieres eliminar «%1$s»?</string>
