@@ -117,11 +117,11 @@ const ArtistasList: React.FC = () => {
   }
 
   return (
-    <div>
-      <div className="d-flex flex-wrap gap-2 align-items-center mb-4">
-        <div className="input-group flex-grow-1" style={{ maxWidth: 420 }}>
+    <div className="container mt-4">
+      <div className="d-flex flex-column flex-md-row justify-content-between mb-4 gap-3">
+        <div className="input-group">
           <span
-            className="input-group-text border-end-0 pb-clickable"
+            className="input-group-text border-end-0"
             onClick={() => fetchArtists(true)}
           >
             <SearchIcon />
@@ -133,12 +133,14 @@ const ArtistasList: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") fetchArtists(true);
+              if (e.key === "Enter") {
+                fetchArtists(true);
+              }
             }}
           />
           {searchTerm && (
             <span
-              className="input-group-text pb-clickable"
+              className="input-group-text border-start-0"
               onClick={handleClearSearch}
             >
               <CloseIcon />
@@ -148,7 +150,7 @@ const ArtistasList: React.FC = () => {
       </div>
 
       {loading ? (
-        <div className="pb-spinner-container">
+        <div className="d-flex justify-content-center align-items-center my-5">
           <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Cargando...</span>
           </div>
