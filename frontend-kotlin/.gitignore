@@ -9,6 +9,9 @@
 .cxx
 /app/build/
 
+# Datos de sesion del compilador de Kotlin: estado local de cada build.
+.kotlin/
+
 # Credenciales de firma: nunca en el repositorio.
 /keystore.properties
 *.keystore
