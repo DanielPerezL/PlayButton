@@ -26,6 +26,12 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 data class QueueEntry(
+    /**
+     * Su sitio en el reproductor, que no tiene por que ser el que ocupa en
+     * [PlayerState.queue]: lo ya escuchado se enseña recortado. Es lo que hay
+     * que darle a [PlayerConnection.skipToQueueIndex] para saltar aqui.
+     */
+    val index: Int,
     val songId: Int,
     val name: String,
     val artworkUri: String? = null,
@@ -41,7 +47,15 @@ data class PlayerState(
     val fullName: String = "",
     val artworkUri: String? = null,
     val durationMs: Long = 0L,
+    /**
+     * La cola tal y como se enseña: todo lo que queda por delante, pero solo
+     * las ultimas [PlayerConnection.VISIBLE_HISTORY] ya escuchadas. El
+     * reproductor guarda bastantes mas para poder retroceder, y en una
+     * playlist larga no se recortan hasta que toca reabastecer, asi que la
+     * lista acababa con cientos de filas apagadas por encima de la actual.
+     */
     val queue: List<QueueEntry> = emptyList(),
+    /** Donde cae la cancion actual dentro de [queue], no en el reproductor. */
     val currentIndex: Int = 0,
     val sourceName: String? = null,
     /**
@@ -96,6 +110,16 @@ class PlayerConnection @Inject constructor(
     private var preparing = false
 
     private val artworkUri by lazy { MediaItems.fallbackArtwork(context.packageName) }
+
+    companion object {
+        /**
+         * Canciones ya escuchadas que se enseñan por encima de la actual. Las
+         * de antes siguen en el reproductor —se retrocede con el boton de
+         * anterior—, pero en la lista solo estorbaban: la cola se abre
+         * colocada en lo que suena y lo de arriba es contexto, no un archivo.
+         */
+        const val VISIBLE_HISTORY = 3
+    }
 
     /**
      * Se engancha al servicio; la llama la pantalla al volver al primer plano.
@@ -171,6 +195,7 @@ class PlayerConnection @Inject constructor(
     private fun syncState() {
         val player = controller ?: return
         val metadata = player.mediaMetadata
+        val queue = currentQueue(player)
         _state.value = PlayerState(
             isConnected = true,
             isPlaying = player.isPlaying,
@@ -184,8 +209,9 @@ class PlayerConnection @Inject constructor(
             // pantalla de bloqueo enseñen algo; la app tiene su propio hueco.
             artworkUri = metadata.artworkUri?.toString()?.takeIf { it.startsWith("http") },
             durationMs = player.duration.takeIf { it > 0 } ?: 0L,
-            queue = currentQueue(player),
-            currentIndex = player.currentMediaItemIndex,
+            queue = queue,
+            currentIndex = queue.indexOfFirst { it.index == player.currentMediaItemIndex }
+                .coerceAtLeast(0),
             sourceName = playbackQueue.sourceName,
             isPreparing = preparing,
         )
@@ -194,10 +220,12 @@ class PlayerConnection @Inject constructor(
         if (player.isPlaying) startPositionTicker() else stopPositionTicker()
     }
 
-    private fun currentQueue(player: Player): List<QueueEntry> =
-        (0 until player.mediaItemCount).map { index ->
+    private fun currentQueue(player: Player): List<QueueEntry> {
+        val from = (player.currentMediaItemIndex - VISIBLE_HISTORY).coerceAtLeast(0)
+        return (from until player.mediaItemCount).map { index ->
             val item = player.getMediaItemAt(index)
             QueueEntry(
+                index = index,
                 songId = item.mediaId.toIntOrNull() ?: -1,
                 name = item.mediaMetadata.displayTitle?.toString()
                     ?: item.mediaMetadata.title?.toString().orEmpty(),
@@ -205,6 +233,7 @@ class PlayerConnection @Inject constructor(
                     ?.takeIf { it.startsWith("http") },
             )
         }
+    }
 
     private inner class ControllerListener : Player.Listener {
         override fun onEvents(player: Player, events: Player.Events) {

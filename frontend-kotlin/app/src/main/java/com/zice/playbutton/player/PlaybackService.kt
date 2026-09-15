@@ -95,9 +95,9 @@ class PlaybackService : MediaSessionService() {
         const val MIN_UPCOMING = 2
 
         /**
-         * Canciones ya escuchadas que se conservan. No es solo para poder
-         * retroceder: la cola del reproductor las enseña, así que recortar a
-         * ras de la canción actual dejaba la lista sin nada por encima.
+         * Canciones ya escuchadas que se conservan, para poder retroceder un
+         * buen rato con el botón de anterior. La cola del reproductor no las
+         * enseña todas: de eso se ocupa `PlayerConnection.VISIBLE_HISTORY`.
          */
         const val KEPT_HISTORY = 20
 

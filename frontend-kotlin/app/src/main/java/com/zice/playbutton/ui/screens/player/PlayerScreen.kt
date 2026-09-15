@@ -331,9 +331,9 @@ fun PlayerScreen(
             )
         }
 
-        // La cola contiene también lo que ya ha sonado, así que se abre
-        // colocada en la canción actual: por delante quedan las siguientes y
-        // subiendo se recupera lo escuchado.
+        // La cola lleva delante las tres últimas que ya han sonado, así que se
+        // abre colocada en la canción actual: por delante quedan las
+        // siguientes y subiendo se ve de dónde viene.
         val queueListState = rememberLazyListState()
         LaunchedEffect(queueVisible) {
             if (queueVisible && state.queue.isNotEmpty()) {
@@ -368,7 +368,9 @@ fun PlayerScreen(
                                     MaterialTheme.colorScheme.surfaceContainer
                                 },
                             )
-                            .clickable { onQueueItemClick(index) }
+                            // El sitio real en el reproductor, no el de esta
+                            // lista: lo escuchado se enseña recortado.
+                            .clickable { onQueueItemClick(entry.index) }
                             .padding(horizontal = 10.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
