@@ -38,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.zice.playbutton.R
+import com.zice.playbutton.ui.components.Artwork
+import com.zice.playbutton.ui.components.ArtworkKind
 import com.zice.playbutton.ui.components.EmptyMessage
 import com.zice.playbutton.ui.components.LoadingBox
 import com.zice.playbutton.ui.components.SearchField
@@ -120,7 +122,10 @@ fun AddSongsScreen(
                             )
                             .padding(start = 12.dp, top = 4.dp, bottom = 4.dp, end = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
+                        Artwork(imageUrl = song.imageUrl, kind = ArtworkKind.Song, size = 40.dp)
+
                         Column(Modifier.weight(1f)) {
                             Text(
                                 text = song.title,

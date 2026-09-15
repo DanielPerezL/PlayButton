@@ -68,6 +68,8 @@
     <string name="playlist_delete">Eliminar</string>
     <string name="playlist_name">Nombre de la playlist</string>
     <string name="playlist_public_switch">Playlist pública</string>
+    <string name="playlist_cover_change">Cambiar portada</string>
+    <string name="playlist_cover_remove">Quitar portada</string>
     <string name="playlist_delete_confirm">¿Seguro que quieres eliminar «%1$s»?</string>
     <string name="song_remove">Quitar de la playlist</string>
     <string name="song_remove_confirm">¿Quitar «%1$s» de la playlist?</string>
@@ -148,6 +150,7 @@
     <string name="settings_cache_in_use">Guardado ahora: %1$s · %2$s</string>
     <string name="settings_cache_empty">Ahora mismo no hay nada guardado</string>
     <string name="settings_cache_clear">Vaciar ahora</string>
+    <string name="settings_cache_covers">Portadas: %1$s</string>
     <string name="cache_size_off">Ninguna</string>
     <string name="cache_size_small">Pequeña</string>
     <string name="cache_size_medium">Mediana</string>

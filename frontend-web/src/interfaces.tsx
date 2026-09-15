@@ -30,6 +30,10 @@ export interface Song {
   title: string;
   artists: Artist[];
   shown_zenn: boolean;
+  /** Portada que se muestra. Puede venir heredada del primer artista. */
+  image_url: string | null;
+  /** Portada propia. Null si la que se ve es la del artista. */
+  own_image_url: string | null;
 }
 
 export interface GetSongsResponse {
@@ -43,6 +47,7 @@ export interface ArtistSummary extends Artist {
   songs_count: number;
   favorites_count: number;
   is_favorite: boolean;
+  image_url: string | null;
 }
 
 export interface GetArtistsResponse {

@@ -73,6 +73,8 @@ fun MiniPlayer(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            Artwork(imageUrl = state.artworkUri, kind = ArtworkKind.Song, size = 36.dp)
+
             Column(Modifier.weight(1f)) {
                 Text(
                     text = state.title.ifBlank { stringResource(R.string.player_loading) },

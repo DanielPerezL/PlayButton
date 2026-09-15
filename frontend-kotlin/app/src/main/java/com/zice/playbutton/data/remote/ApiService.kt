@@ -3,6 +3,7 @@ package com.zice.playbutton.data.remote
 import com.zice.playbutton.data.remote.dto.ArtistPageDto
 import com.zice.playbutton.data.remote.dto.ChangePasswordRequest
 import com.zice.playbutton.data.remote.dto.FavoriteCountDto
+import com.zice.playbutton.data.remote.dto.ImageUrlDto
 import com.zice.playbutton.data.remote.dto.LoginRequest
 import com.zice.playbutton.data.remote.dto.LoginResponse
 import com.zice.playbutton.data.remote.dto.PlaylistBodyRequest
@@ -11,11 +12,14 @@ import com.zice.playbutton.data.remote.dto.PlaylistPageDto
 import com.zice.playbutton.data.remote.dto.SignedUrlDto
 import com.zice.playbutton.data.remote.dto.SongPageDto
 import com.zice.playbutton.data.remote.dto.SuggestionRequest
+import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.PATCH
+import retrofit2.http.Part
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
@@ -112,6 +116,21 @@ interface ApiService {
         @Path("playlistId") playlistId: Int,
         @Path("songId") songId: Int,
     ): Response<Unit>
+
+    /**
+     * La portada de una playlist. Devuelve su URL nueva: cada cambio crea una
+     * imagen distinta, asi que la anterior ya no vale y no hay forma de
+     * adivinarla.
+     */
+    @Multipart
+    @PUT("playlists/{id}/image")
+    suspend fun setPlaylistImage(
+        @Path("id") playlistId: Int,
+        @Part image: MultipartBody.Part,
+    ): ImageUrlDto
+
+    @DELETE("playlists/{id}/image")
+    suspend fun deletePlaylistImage(@Path("id") playlistId: Int): Response<Unit>
 
     /** Alterna el favorito y devuelve el contador ya actualizado. */
     @POST("playlists/{id}/favorite")

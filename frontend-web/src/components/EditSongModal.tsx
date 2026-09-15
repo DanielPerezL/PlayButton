@@ -1,8 +1,9 @@
 // EditSongModal.tsx
 import React, { useState, useEffect } from "react";
-import { updateSong } from "../services/apiService";
+import { deleteImage, setImage, updateSong } from "../services/apiService";
 import { formatArtists, parseArtists } from "../services/songName";
 import ArtistsField from "./ArtistsField";
+import CoverField from "./CoverField";
 import { toast } from "react-toastify";
 import { Song } from "../interfaces";
 import HelpPopover from "./HelpPopover";
@@ -25,6 +26,7 @@ const EditSongModal: React.FC<EditSongModalProps> = ({
   const [artists, setArtists] = useState("");
   const [title, setTitle] = useState("");
   const [shownZenn, setShownZenn] = useState(true);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -32,8 +34,22 @@ const EditSongModal: React.FC<EditSongModalProps> = ({
       setArtists(formatArtists(song.artists));
       setTitle(song.title);
       setShownZenn(song.shown_zenn);
+      setCoverFile(null);
     }
   }, [song]);
+
+  /** Quitar la portada surte efecto al momento: no espera a guardar. */
+  const handleRemoveCover = async () => {
+    if (!song) return;
+    try {
+      await deleteImage("songs", song.id);
+      toast.success("Portada eliminada");
+      onSongUpdated();
+      onClose();
+    } catch (err: any) {
+      toast.error(err?.message || "Error al quitar la portada");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +66,7 @@ const EditSongModal: React.FC<EditSongModalProps> = ({
     setLoading(true);
     try {
       await updateSong(song.id, title.trim(), artistNames, shownZenn);
+      if (coverFile) await setImage("songs", song.id, coverFile);
       toast.success(`Canción '${title.trim()}' actualizada correctamente`);
       onSongUpdated();
       onClose();
@@ -94,6 +111,13 @@ const EditSongModal: React.FC<EditSongModalProps> = ({
                     required
                   />
                 </div>
+                <CoverField
+                  currentUrl={song.own_image_url ?? song.image_url}
+                  inherited={!song.own_image_url && Boolean(song.image_url)}
+                  file={coverFile}
+                  onFileChange={setCoverFile}
+                  onRemove={handleRemoveCover}
+                />
                 <div className="mb-3 form-check form-switch">
                   <input
                     type="checkbox"

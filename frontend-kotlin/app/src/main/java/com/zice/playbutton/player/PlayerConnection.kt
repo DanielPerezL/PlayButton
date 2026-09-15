@@ -2,7 +2,6 @@ package com.zice.playbutton.player
 
 import android.content.ComponentName
 import android.content.Context
-import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.annotation.OptIn
@@ -11,7 +10,6 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
-import com.zice.playbutton.R
 import com.zice.playbutton.data.repo.SongRepository
 import com.zice.playbutton.domain.Song
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -30,6 +28,7 @@ import javax.inject.Singleton
 data class QueueEntry(
     val songId: Int,
     val name: String,
+    val artworkUri: String? = null,
 )
 
 data class PlayerState(
@@ -40,6 +39,7 @@ data class PlayerState(
     val title: String = "",
     val artist: String? = null,
     val fullName: String = "",
+    val artworkUri: String? = null,
     val durationMs: Long = 0L,
     val queue: List<QueueEntry> = emptyList(),
     val currentIndex: Int = 0,
@@ -79,9 +79,7 @@ class PlayerConnection @Inject constructor(
 
     private var positionTicker: Job? = null
 
-    private val artworkUri by lazy {
-        "android.resource://${context.packageName}/${R.drawable.notification_artwork}".toUri()
-    }
+    private val artworkUri by lazy { MediaItems.fallbackArtwork(context.packageName) }
 
     /**
      * Se engancha al servicio; la llama la pantalla al volver al primer plano.
@@ -165,6 +163,10 @@ class PlayerConnection @Inject constructor(
             title = metadata.title?.toString().orEmpty(),
             artist = metadata.artist?.toString(),
             fullName = metadata.displayTitle?.toString().orEmpty(),
+            // Solo la remota. Cuando la cancion no tiene portada, la sesion
+            // lleva el isotipo empaquetado para que la notificacion y la
+            // pantalla de bloqueo enseñen algo; la app tiene su propio hueco.
+            artworkUri = metadata.artworkUri?.toString()?.takeIf { it.startsWith("http") },
             durationMs = player.duration.takeIf { it > 0 } ?: 0L,
             queue = currentQueue(player),
             currentIndex = player.currentMediaItemIndex,
@@ -182,6 +184,8 @@ class PlayerConnection @Inject constructor(
                 songId = item.mediaId.toIntOrNull() ?: -1,
                 name = item.mediaMetadata.displayTitle?.toString()
                     ?: item.mediaMetadata.title?.toString().orEmpty(),
+                artworkUri = item.mediaMetadata.artworkUri?.toString()
+                    ?.takeIf { it.startsWith("http") },
             )
         }
 

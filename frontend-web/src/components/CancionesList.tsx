@@ -2,6 +2,7 @@ import { SearchIcon, CloseIcon } from "./icons/Icons";
 import React, { useEffect, useState } from "react";
 import { getSongs, deleteSong } from "../services/apiService";
 import { formatArtists } from "../services/songName";
+import Cover from "./Cover";
 import { Song, GetSongsResponse } from "../interfaces";
 import AddSongModal from "./AddSongModal";
 import EditSongModal from "./EditSongModal";
@@ -129,15 +130,23 @@ const CancionesList: React.FC = () => {
               <div key={song.id} className="col-12 col-md-6 col-lg-4">
                 <div className="card shadow-sm h-100">
                   <div className="card-body d-flex flex-column justify-content-between">
-                    <div>
-                      <h5 className="card-title mb-1">{song.title}</h5>
-                      <p className="card-text text-body-secondary mb-2">
-                        {formatArtists(song.artists) || "Sin artista"}
-                      </p>
-                      <p className="card-text">
-                        Mostrada en Zenn:{" "}
-                        <strong>{song.shown_zenn ? "Sí" : "No"}</strong>
-                      </p>
+                    <div className="d-flex align-items-start gap-3">
+                      <Cover src={song.image_url} alt="" />
+                      <div className="pb-truncate flex-grow-1">
+                        <h5 className="card-title mb-1">{song.title}</h5>
+                        <p className="card-text text-body-secondary mb-2">
+                          {formatArtists(song.artists) || "Sin artista"}
+                        </p>
+                        <p className="card-text mb-0">
+                          Mostrada en Zenn:{" "}
+                          <strong>{song.shown_zenn ? "Sí" : "No"}</strong>
+                        </p>
+                        {!song.own_image_url && song.image_url && (
+                          <span className="badge text-bg-secondary mt-2">
+                            Portada del artista
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="mt-3 d-flex gap-2 flex-wrap">
                       <button

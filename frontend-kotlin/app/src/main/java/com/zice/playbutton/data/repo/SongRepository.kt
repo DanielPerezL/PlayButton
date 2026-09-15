@@ -64,6 +64,7 @@ class SongRepository @Inject constructor(
                     title = song.title,
                     artists = joinArtists(song.artists),
                     position = index,
+                    imageUrl = song.imageUrl,
                 )
             },
         )
@@ -71,7 +72,14 @@ class SongRepository @Inject constructor(
     }
 
     private fun List<CachedSongEntity>.toSongs(): List<Song> =
-        map { Song(id = it.songId, title = it.title, artists = splitArtists(it.artists)) }
+        map {
+            Song(
+                id = it.songId,
+                title = it.title,
+                artists = splitArtists(it.artists),
+                imageUrl = it.imageUrl,
+            )
+        }
 
     suspend fun invalidatePlaylistSongs(playlistId: Int) = songCacheDao.invalidate(playlistId)
 

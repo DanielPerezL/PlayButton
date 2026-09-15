@@ -25,6 +25,11 @@ SECRET_KEY = os.environ['SECRET_KEY']
 signer = TimestampSigner(SECRET_KEY)
 
 app.config['ALLOWED_EXTENSIONS'] = {'mp3'}
+# Las portadas se reescriben a un cuadrado de este lado. El limite es del
+# fichero que entra, y se comprueba en el servicio: MAX_CONTENT_LENGTH lo
+# aplicaria Flask a toda peticion y se llevaria por delante la subida de MP3.
+IMAGE_SIZE = int(os.environ.get('IMAGE_SIZE', 512))
+MAX_IMAGE_BYTES = int(os.environ.get('MAX_IMAGE_BYTES', 10 * 1024 * 1024))
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+mysqlconnector://{os.environ['DATABASE_USER']}:{os.environ['DATABASE_PASSWORD']}@{os.environ['DATABASE_HOST']}/{os.environ['DATABASE_NAME']}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False

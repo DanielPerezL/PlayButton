@@ -1,9 +1,15 @@
 import { SearchIcon, CloseIcon } from "./icons/Icons";
 import React, { useEffect, useState } from "react";
-import { getArtists, renameArtist } from "../services/apiService";
+import {
+  deleteImage,
+  getArtists,
+  renameArtist,
+  setImage,
+} from "../services/apiService";
 import { ArtistSummary, GetArtistsResponse } from "../interfaces";
 import { toast } from "react-toastify";
 import LoadingButton from "./LoadingButton";
+import Cover from "./Cover";
 
 const ArtistasList: React.FC = () => {
   const [artists, setArtists] = useState<ArtistSummary[]>([]);
@@ -60,6 +66,28 @@ const ArtistasList: React.FC = () => {
   const startEditing = (artist: ArtistSummary) => {
     setEditingId(artist.id);
     setEditingName(artist.name);
+  };
+
+  const handleImage = async (artist: ArtistSummary, file: File) => {
+    try {
+      await setImage("artists", artist.id, file);
+      toast.success(`Foto de '${artist.name}' actualizada`);
+      await fetchArtists(true);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.message || "Error al subir la imagen");
+    }
+  };
+
+  const handleRemoveImage = async (artist: ArtistSummary) => {
+    try {
+      await deleteImage("artists", artist.id);
+      toast.success(`Foto de '${artist.name}' eliminada`);
+      await fetchArtists(true);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.message || "Error al quitar la imagen");
+    }
   };
 
   const handleRename = async (artist: ArtistSummary) => {
@@ -162,21 +190,50 @@ const ArtistasList: React.FC = () => {
                       </div>
                     ) : (
                       <>
-                        <div>
-                          <h5 className="card-title mb-1">{artist.name}</h5>
-                          <p className="card-text text-body-secondary mb-0">
-                            {artist.songs_count}{" "}
-                            {artist.songs_count === 1 ? "canción" : "canciones"}
-                            {" · "}
-                            {artist.favorites_count}{" "}
-                            {artist.favorites_count === 1
-                              ? "favorito"
-                              : "favoritos"}
-                          </p>
+                        <div className="d-flex align-items-center gap-3">
+                          <Cover src={artist.image_url} alt="" kind="artist" />
+                          <div className="pb-truncate flex-grow-1">
+                            <h5 className="card-title mb-1">{artist.name}</h5>
+                            <p className="card-text text-body-secondary mb-0">
+                              {artist.songs_count}{" "}
+                              {artist.songs_count === 1 ? "canción" : "canciones"}
+                              {" · "}
+                              {artist.favorites_count}{" "}
+                              {artist.favorites_count === 1
+                                ? "favorito"
+                                : "favoritos"}
+                            </p>
+                          </div>
                         </div>
-                        <div className="mt-3">
+                        <div className="mt-3 d-flex flex-column gap-2">
+                          <label
+                            className="btn btn-outline-primary btn-sm mb-0 pb-clickable"
+                            htmlFor={`cover-${artist.id}`}
+                          >
+                            {artist.image_url ? "Cambiar foto" : "Subir foto"}
+                          </label>
+                          <input
+                            id={`cover-${artist.id}`}
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            className="d-none"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              // Se limpia para poder volver a elegir el mismo fichero.
+                              e.target.value = "";
+                              if (file) handleImage(artist, file);
+                            }}
+                          />
+                          {artist.image_url && (
+                            <button
+                              className="btn btn-outline-danger btn-sm"
+                              onClick={() => handleRemoveImage(artist)}
+                            >
+                              Quitar foto
+                            </button>
+                          )}
                           <button
-                            className="btn btn-primary btn-sm w-100"
+                            className="btn btn-primary btn-sm"
                             onClick={() => startEditing(artist)}
                           >
                             Renombrar

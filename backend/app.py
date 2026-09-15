@@ -1,6 +1,7 @@
 from config import app, db, SECRET_KEY
 from controllers import (
     auth_controller,
+    images_controller,
     playlist_controller,
     songs_controller,
     suggestions_controller,

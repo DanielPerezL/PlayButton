@@ -2,7 +2,6 @@ package com.zice.playbutton.player
 
 import android.app.PendingIntent
 import android.content.Intent
-import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -19,7 +18,6 @@ import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.zice.playbutton.MainActivity
-import com.zice.playbutton.R
 import com.zice.playbutton.data.local.AudioCache
 import com.zice.playbutton.data.local.SettingsStore
 import dagger.hilt.android.AndroidEntryPoint
@@ -78,9 +76,7 @@ class PlaybackService : MediaSessionService() {
     /** Duración del fundido entre canciones; 0 si está desactivado en ajustes. */
     private var crossfadeMs = 0L
 
-    private val artworkUri by lazy {
-        "android.resource://$packageName/${R.drawable.notification_artwork}".toUri()
-    }
+    private val artworkUri by lazy { MediaItems.fallbackArtwork(packageName) }
 
     private companion object {
         /**

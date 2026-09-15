@@ -29,6 +29,7 @@ data class CachedSongEntity(
     /** Los artistas, unidos por [ARTIST_SEPARATOR]. Ver [joinArtists]. */
     val artists: String,
     val position: Int,
+    val imageUrl: String? = null,
 )
 
 /**
@@ -66,6 +67,7 @@ data class DownloadedPlaylistEntity(
     val isArtist: Boolean,
     val songCount: Int,
     val updatedAt: Long,
+    val imageUrl: String? = null,
 )
 
 @Dao
@@ -160,7 +162,7 @@ interface SongCacheDao {
         PlaylistCacheMetaEntity::class,
         DownloadedPlaylistEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = false,
 )
 abstract class PlayButtonDatabase : RoomDatabase() {
@@ -183,6 +185,22 @@ abstract class PlayButtonDatabase : RoomDatabase() {
  * ("Queen, Bowie"), que es exactamente lo que se mostraba antes; la proxima
  * vez que haya servidor, el listado los trae ya separados.
  */
+/**
+ * La URL de la portada, para poder pintar las filas y las tarjetas sin
+ * conexion. Se anade en las dos tablas: `cached_songs` es lo que se muestra al
+ * abrir una playlist descargada, y `downloaded_playlists` la lista que la
+ * contiene.
+ *
+ * Nace vacia a proposito: la portada correcta la trae el servidor en la
+ * siguiente revalidacion, y hasta entonces se pinta el hueco de siempre.
+ */
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE cached_songs ADD COLUMN imageUrl TEXT")
+        db.execSQL("ALTER TABLE downloaded_playlists ADD COLUMN imageUrl TEXT")
+    }
+}
+
 val MIGRATION_2_3 = object : Migration(2, 3) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL(

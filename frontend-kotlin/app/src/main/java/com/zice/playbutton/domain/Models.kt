@@ -17,6 +17,7 @@ data class Song(
     val id: Int,
     val title: String,
     val artists: List<String> = emptyList(),
+    val imageUrl: String? = null,
 ) {
     /** Los artistas tal y como se muestran en una línea. */
     val artist: String? get() = artists.joinToString(", ").ifEmpty { null }
@@ -34,6 +35,7 @@ data class Playlist(
     val isArtist: Boolean,
     val favoritesCount: Int,
     val isFavorite: Boolean,
+    val imageUrl: String? = null,
 )
 
 /**
@@ -46,12 +48,14 @@ data class DownloadedPlaylist(
     val ownerName: String,
     val isArtist: Boolean,
     val songCount: Int,
+    val imageUrl: String? = null,
 )
 
 fun SongDto.toDomain() = Song(
     id = id,
     title = title,
     artists = artists.map { it.name },
+    imageUrl = imageUrl,
 )
 
 /**
@@ -67,6 +71,7 @@ fun ArtistSummaryDto.toDomain() = Playlist(
     isArtist = true,
     favoritesCount = favoritesCount,
     isFavorite = isFavorite,
+    imageUrl = imageUrl,
 )
 
 fun PlaylistDto.toDomain() = Playlist(
@@ -78,6 +83,7 @@ fun PlaylistDto.toDomain() = Playlist(
     isArtist = isArtistPlaylist,
     favoritesCount = favoritesCount,
     isFavorite = isFavorite,
+    imageUrl = imageUrl,
 )
 
 /** Origen de un listado de playlists. Identifica también su caché. */

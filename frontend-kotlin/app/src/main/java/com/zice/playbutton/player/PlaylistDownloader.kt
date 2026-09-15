@@ -1,15 +1,22 @@
 package com.zice.playbutton.player
 
+import android.content.Context
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.CacheWriter
+import coil3.ImageLoader
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
 import com.zice.playbutton.data.local.AudioCache
 import com.zice.playbutton.data.local.AudioDownloads
 import com.zice.playbutton.data.repo.OfflineLibrary
 import com.zice.playbutton.domain.Playlist
 import com.zice.playbutton.domain.Song
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,8 +31,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Descarga una playlist entera para poder escucharla sin datos y sin que
@@ -47,6 +52,8 @@ class PlaylistDownloader @Inject constructor(
     private val audioCache: AudioCache,
     private val offlineLibrary: OfflineLibrary,
     private val notifications: DownloadNotifications,
+    private val imageLoader: ImageLoader,
+    @param:ApplicationContext private val context: Context,
 ) {
     private companion object {
         /**
@@ -174,7 +181,38 @@ class PlaylistDownloader @Inject constructor(
             notifications.showProgress(playlist.name, saved, songs.size)
         }
 
+        cacheArtwork(playlist, songs)
+
         return Result.Saved(playlistId, saved)
+    }
+
+    /**
+     * Deja las portadas en la cache de disco de Coil, que es de donde tiran
+     * las pantallas. Sin esto una playlist descargada se escucha sin conexion
+     * pero se ve llena de huecos.
+     *
+     * Las URL se dedupican antes: casi todas las canciones de un artista
+     * comparten la suya, asi que bajarlas una a una seria repetir la misma
+     * decenas de veces. No gastan presupuesto de espacio porque pesan menos
+     * del uno por ciento de lo que pesa el audio, y la cache tiene su propio
+     * limite con desalojo por uso.
+     */
+    private suspend fun cacheArtwork(playlist: Playlist, songs: List<Song>) {
+        val urls = (songs.mapNotNull { it.imageUrl } + listOfNotNull(playlist.imageUrl)).toSet()
+
+        for (url in urls) {
+            currentCoroutineContext().ensureActive()
+            runCatching {
+                imageLoader.execute(
+                    ImageRequest.Builder(context)
+                        .data(url)
+                        // Solo interesa que quede en disco: nadie la va a
+                        // pintar ahora mismo y ocuparia memoria para nada.
+                        .memoryCachePolicy(CachePolicy.DISABLED)
+                        .build(),
+                )
+            }
+        }
     }
 
     private suspend fun write(

@@ -1,5 +1,8 @@
 package com.zice.playbutton.ui.screens.detail
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -63,6 +66,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.zice.playbutton.R
 import com.zice.playbutton.domain.Song
 import com.zice.playbutton.player.PlaylistDownloader
+import com.zice.playbutton.ui.components.Artwork
+import com.zice.playbutton.ui.components.ArtworkKind
 import com.zice.playbutton.ui.components.ConfirmDialog
 import com.zice.playbutton.ui.components.EmptyMessage
 import com.zice.playbutton.ui.components.ErrorMessage
@@ -104,7 +109,16 @@ fun PlaylistDetailScreen(
 
     Column(modifier = modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         // Cabecera
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Artwork(
+                imageUrl = state.playlist?.imageUrl,
+                kind = if (state.playlist?.isArtist == true) ArtworkKind.Artist else ArtworkKind.Song,
+                size = 64.dp,
+            )
+
             Column(Modifier.weight(1f)) {
                 Text(
                     text = state.playlist?.name.orEmpty(),
@@ -321,6 +335,10 @@ fun PlaylistDetailScreen(
         )
     }
 
+    val pickImage = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia(),
+    ) { uri -> uri?.let(viewModel::setImage) }
+
     if (state.editVisible) {
         AlertDialog(
             onDismissRequest = viewModel::closeEdit,
@@ -343,6 +361,50 @@ fun PlaylistDetailScreen(
                         Switch(
                             checked = state.editIsPublic,
                             onCheckedChange = viewModel::onEditPublicChange,
+                        )
+                    }
+
+                    // La portada se guarda sola al elegirla, sin esperar a
+                    // Guardar: es una subida, no un campo del formulario.
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Artwork(
+                            imageUrl = state.playlist?.imageUrl,
+                            kind = ArtworkKind.Song,
+                            size = 56.dp,
+                        )
+                        Column(Modifier.weight(1f)) {
+                            TextButton(
+                                onClick = {
+                                    pickImage.launch(
+                                        PickVisualMediaRequest(
+                                            ActivityResultContracts.PickVisualMedia.ImageOnly,
+                                        ),
+                                    )
+                                },
+                                enabled = !state.isSavingImage,
+                            ) {
+                                Text(stringResource(R.string.playlist_cover_change))
+                            }
+                            if (state.playlist?.imageUrl != null) {
+                                TextButton(
+                                    onClick = viewModel::clearImage,
+                                    enabled = !state.isSavingImage,
+                                ) {
+                                    Text(stringResource(R.string.playlist_cover_remove))
+                                }
+                            }
+                        }
+                    }
+
+                    state.imageError?.let { error ->
+                        Text(
+                            text = error.text(),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
                         )
                     }
                 }
@@ -525,7 +587,10 @@ private fun SongRow(
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        Artwork(imageUrl = song.imageUrl, kind = ArtworkKind.Song, size = 40.dp)
+
         Column(Modifier.weight(1f)) {
             Text(
                 text = song.title,

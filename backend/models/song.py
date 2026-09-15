@@ -1,5 +1,6 @@
 from config import db
 from flask import request
+from .image import image_url_of
 
 class Song(db.Model):
     """
@@ -16,21 +17,41 @@ class Song(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
     shown_zenn = db.Column(db.Boolean, default=True)
+    image_id = db.Column(db.Integer, db.ForeignKey('image.id', ondelete='SET NULL'), nullable=True)
+    image = db.relationship('Image')
 
     def __init__(self, title):
         self.title = title
+
+    @property
+    def resolved_image(self):
+        """
+        La imagen que se muestra. Si la cancion no tiene la suya se usa la del
+        primer artista, que es lo que evita una biblioteca entera de huecos
+        grises por tener que subir una portada cancion a cancion.
+        """
+        if self.image is not None:
+            return self.image
+        for artist in self.artists:
+            if artist.image is not None:
+                return artist.image
+        return None
 
     def to_dto(self):
         return {
             "id": self.id,
             "title": self.title,
             "artists": [{"id": a.id, "name": a.name} for a in self.artists],
+            "image_url": image_url_of(self.resolved_image),
         }
 
     def to_detailed_dto(self):
         return {
             **self.to_dto(),
             "shown_zenn": self.shown_zenn,
+            # El panel necesita distinguir la portada propia de la heredada del
+            # artista para saber si hay algo que quitar.
+            "own_image_url": image_url_of(self.image),
         }
 
     def get_filename(self):

@@ -1,3 +1,4 @@
+from .image import Image, image_url_of
 from .song import Song
 from .artist import Artist, song_artist
 from .mp3 import Mp3

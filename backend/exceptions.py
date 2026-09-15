@@ -30,6 +30,18 @@ class BadAudioFileException(AppException):
     message = "Formato de audio no soportado."
 
 
+class BadImageFileException(AppException):
+    status_code = 400
+    error_code = "bad_request"
+    message = "Formato de imagen no soportado."
+
+
+class ImageTooLargeException(AppException):
+    status_code = 413
+    error_code = "image_too_large"
+    message = "La imagen es demasiado grande."
+
+
 class UnauthorizedException(AppException):
     status_code = 401
     error_code = "unauthorized"

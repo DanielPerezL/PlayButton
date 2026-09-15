@@ -79,6 +79,7 @@ fun SettingsScreen(
     val crossfadeEnabled by viewModel.crossfadeEnabled.collectAsStateWithLifecycle()
     val cacheSize by viewModel.audioCacheSize.collectAsStateWithLifecycle()
     val cacheUsage by viewModel.audioCacheUsage.collectAsStateWithLifecycle()
+    val coverBytes by viewModel.imageCacheBytes.collectAsStateWithLifecycle()
     val downloadsUsage by viewModel.downloadsUsage.collectAsStateWithLifecycle()
 
     var logoutConfirmVisible by remember { mutableStateOf(false) }
@@ -244,6 +245,7 @@ fun SettingsScreen(
 
     if (cacheDialogVisible) {
         AudioCacheDialog(
+            coverBytes = coverBytes,
             selected = cacheSize,
             usage = cacheUsage,
             onSelect = viewModel::setAudioCacheSize,
@@ -430,6 +432,7 @@ private fun AudioCacheSize.label(): String = stringResource(
  */
 @Composable
 private fun AudioCacheDialog(
+    coverBytes: Long,
     selected: AudioCacheSize,
     usage: AudioUsage,
     onSelect: (AudioCacheSize) -> Unit,
@@ -507,13 +510,24 @@ private fun AudioCacheDialog(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+
+                if (coverBytes > 0) {
+                    Text(
+                        text = stringResource(
+                            R.string.settings_cache_covers,
+                            Formatter.formatShortFileSize(context, coverBytes),
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         },
         confirmButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) }
         },
         dismissButton = {
-            TextButton(onClick = onClear, enabled = usage.songs > 0) {
+            TextButton(onClick = onClear, enabled = usage.songs > 0 || coverBytes > 0) {
                 Text(stringResource(R.string.settings_cache_clear))
             }
         },

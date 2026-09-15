@@ -5,3 +5,4 @@ Flask-SQLAlchemy
 mysql-connector-python
 gunicorn
 pydub
+Pillow

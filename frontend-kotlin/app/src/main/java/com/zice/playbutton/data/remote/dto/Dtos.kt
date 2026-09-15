@@ -32,6 +32,7 @@ data class PlaylistDto(
     @SerialName("is_artist_playlist") val isArtistPlaylist: Boolean = false,
     @SerialName("favorites_count") val favoritesCount: Int = 0,
     @SerialName("is_favorite") val isFavorite: Boolean = false,
+    @SerialName("image_url") val imageUrl: String? = null,
 )
 
 @Serializable
@@ -51,6 +52,8 @@ data class SongDto(
     val id: Int,
     val title: String,
     val artists: List<ArtistDto> = emptyList(),
+    /** Ya resuelta por el servidor: puede ser la del primer artista. */
+    @SerialName("image_url") val imageUrl: String? = null,
 )
 
 /**
@@ -66,6 +69,7 @@ data class ArtistSummaryDto(
     @SerialName("songs_count") val songsCount: Int = 0,
     @SerialName("favorites_count") val favoritesCount: Int = 0,
     @SerialName("is_favorite") val isFavorite: Boolean = false,
+    @SerialName("image_url") val imageUrl: String? = null,
 )
 
 @Serializable
@@ -83,6 +87,11 @@ data class SongPageDto(
 @Serializable
 data class SignedUrlDto(
     @SerialName("mp3_url") val mp3Url: String? = null,
+)
+
+@Serializable
+data class ImageUrlDto(
+    @SerialName("image_url") val imageUrl: String? = null,
 )
 
 @Serializable

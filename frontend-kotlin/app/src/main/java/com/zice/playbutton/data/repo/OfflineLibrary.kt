@@ -79,6 +79,7 @@ class OfflineLibrary @Inject constructor(
                 isArtist = playlist.isArtist,
                 songCount = totalSongs,
                 updatedAt = System.currentTimeMillis(),
+                imageUrl = playlist.imageUrl,
             ),
         )
     }
@@ -130,6 +131,7 @@ private fun DownloadedPlaylistEntity.toDomain() = DownloadedPlaylist(
     ownerName = ownerName,
     isArtist = isArtist,
     songCount = songCount,
+    imageUrl = imageUrl,
 )
 
 /**

@@ -46,13 +46,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.zice.playbutton.R
 import com.zice.playbutton.player.PlayerState
+import com.zice.playbutton.ui.components.Artwork
+import com.zice.playbutton.ui.components.ArtworkKind
 import com.zice.playbutton.ui.theme.Brand500
 import com.zice.playbutton.util.formatTime
 
@@ -155,8 +159,8 @@ fun PlayerScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        // Carátula. El backend no sirve imágenes de portada, así que se usa
-        // el isotipo sobre un halo del color de marca.
+        // Carátula. Sin portada se queda el isotipo sobre un halo del color de
+        // marca, que es lo que había antes de que el backend las sirviera.
         Box(
             modifier = Modifier
                 .fillMaxWidth(artworkFraction)
@@ -172,11 +176,21 @@ fun PlayerScreen(
                 ),
             contentAlignment = Alignment.Center,
         ) {
-            Image(
-                painter = painterResource(R.drawable.default_artwork),
-                contentDescription = null,
-                modifier = Modifier.fillMaxWidth(0.55f),
-            )
+            val artworkUri = state.artworkUri
+            if (artworkUri == null) {
+                Image(
+                    painter = painterResource(R.drawable.default_artwork),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxWidth(0.55f),
+                )
+            } else {
+                AsyncImage(
+                    model = artworkUri,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.matchParentSize(),
+                )
+            }
         }
 
         Spacer(Modifier.height(28.dp))
@@ -341,19 +355,7 @@ fun PlayerScreen(
                 itemsIndexed(state.queue) { index, entry ->
                     val isCurrent = index == state.currentIndex
                     val isPlayed = index < state.currentIndex
-                    Text(
-                        text = entry.name,
-                        style = MaterialTheme.typography.bodyMedium,
-                        // Lo ya escuchado se apaga: sigue estando para poder
-                        // volver a él, pero no compite con lo que viene.
-                        color = when {
-                            isCurrent -> MaterialTheme.colorScheme.onPrimary
-                            isPlayed -> MaterialTheme.colorScheme.onSurfaceVariant
-                                .copy(alpha = 0.5f)
-                            else -> MaterialTheme.colorScheme.onSurfaceVariant
-                        },
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(MaterialTheme.shapes.small)
@@ -365,8 +367,32 @@ fun PlayerScreen(
                                 },
                             )
                             .clickable { onQueueItemClick(index) }
-                            .padding(horizontal = 12.dp, vertical = 10.dp),
-                    )
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Artwork(
+                            imageUrl = entry.artworkUri,
+                            kind = ArtworkKind.Song,
+                            size = 32.dp,
+                            shape = MaterialTheme.shapes.extraSmall,
+                        )
+                        Text(
+                            text = entry.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            // Lo ya escuchado se apaga: sigue estando para poder
+                            // volver a él, pero no compite con lo que viene.
+                            color = when {
+                                isCurrent -> MaterialTheme.colorScheme.onPrimary
+                                isPlayed -> MaterialTheme.colorScheme.onSurfaceVariant
+                                    .copy(alpha = 0.5f)
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                 }
             }
         }

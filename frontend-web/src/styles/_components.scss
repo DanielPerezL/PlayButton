@@ -405,3 +405,23 @@
     width: 100%;
     z-index: 1000;
 }
+
+// Portada de una canción, artista o playlist. El hueco replica el cuadro de
+// acento con icono que usan las tarjetas de la app móvil.
+.pb-cover {
+    flex: 0 0 auto;
+    aspect-ratio: 1;
+    border-radius: 12px;
+    // La imagen que llega ya es cuadrada, pero recortar aquí también la deja a
+    // salvo de las que se subieran antes de que el servidor las normalizara.
+    object-fit: cover;
+    background-color: rgba(var(--pb-brand-500-rgb), 0.12);
+}
+
+.pb-cover--empty {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--pb-brand-400);
+    border: 1px solid rgba(var(--pb-brand-500-rgb), 0.28);
+}

@@ -77,6 +77,20 @@ export const PlaylistIcon = ({ size, ...props }: IconProps) => (
         <path fillRule="evenodd" d="M0 11.5a.5.5 0 0 1 .5-.5H4a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5m0-4A.5.5 0 0 1 .5 7H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5m0-4A.5.5 0 0 1 .5 3H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5"/>
     </svg>
 );
+/** bootstrap-icons: person-fill — hueco de la foto de un artista */
+export const PersonIcon = ({ size, ...props }: IconProps) => (
+    <svg {...base(size)} {...props}>
+        <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
+    </svg>
+);
+/** bootstrap-icons: music-note-beamed — hueco de la portada de una canción */
+export const MusicNoteIcon = ({ size, ...props }: IconProps) => (
+    <svg {...base(size)} {...props}>
+        <path d="M6 13c0 1.105-1.12 2-2.5 2S1 14.105 1 13s1.12-2 2.5-2 2.5.896 2.5 2m9-2c0 1.105-1.12 2-2.5 2s-2.5-.895-2.5-2 1.12-2 2.5-2 2.5.895 2.5 2"/>
+        <path fillRule="evenodd" d="M14 11V2h1v9zM6 3v10H5V3z"/>
+        <path d="M5 2.905a1 1 0 0 1 .9-.995l8-.8a1 1 0 0 1 1.1.995V3L5 4z"/>
+    </svg>
+);
 /** bootstrap-icons: github — enlaces al repositorio */
 export const GithubIcon = ({ size, ...props }: IconProps) => (
     <svg {...base(size)} {...props}>

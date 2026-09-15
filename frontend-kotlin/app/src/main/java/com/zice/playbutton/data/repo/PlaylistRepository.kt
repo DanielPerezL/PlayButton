@@ -1,17 +1,23 @@
 package com.zice.playbutton.data.repo
 
+import android.content.Context
+import android.net.Uri
 import com.zice.playbutton.data.local.SessionProvider
 import com.zice.playbutton.data.remote.ApiService
 import com.zice.playbutton.data.remote.dto.PlaylistBodyRequest
 import com.zice.playbutton.domain.Playlist
 import com.zice.playbutton.domain.PlaylistSource
 import com.zice.playbutton.domain.toDomain
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -47,6 +53,7 @@ data class CachedList(
 class PlaylistRepository @Inject constructor(
     private val api: ApiService,
     private val sessionProvider: SessionProvider,
+    @param:ApplicationContext private val context: Context,
 ) {
     private companion object {
         const val PAGE_SIZE = 20
@@ -172,6 +179,52 @@ class PlaylistRepository @Inject constructor(
         if (ok) {
             // Renombrar altera el nombre en todas las listas donde aparezca.
             updateEverywhere(playlistId) { it.copy(name = name, isPublic = isPublic) }
+            invalidateOwned()
+        }
+        return ok
+    }
+
+    /**
+     * Sube la portada elegida en el selector de fotos.
+     *
+     * El backend valida por extension del nombre de fichero, y lo que da el
+     * selector es un content:// sin nombre util, asi que se compone uno a
+     * partir del tipo que declara el sistema. Un tipo que el servidor no acepta
+     * se corta aqui, sin gastar la subida.
+     */
+    suspend fun setPlaylistImage(playlistId: Int, uri: Uri): Boolean {
+        val resolver = context.contentResolver
+        val mime = resolver.getType(uri) ?: return false
+        val extension = when (mime) {
+            "image/jpeg" -> "jpg"
+            "image/png" -> "png"
+            "image/webp" -> "webp"
+            else -> return false
+        }
+
+        val bytes = runCatching {
+            resolver.openInputStream(uri)?.use { it.readBytes() }
+        }.getOrNull() ?: return false
+
+        val part = MultipartBody.Part.createFormData(
+            "image",
+            "cover.$extension",
+            bytes.toRequestBody(mime.toMediaType()),
+        )
+
+        val imageUrl = runCatching { api.setPlaylistImage(playlistId, part).imageUrl }
+            .getOrNull() ?: return false
+
+        updateEverywhere(playlistId) { it.copy(imageUrl = imageUrl) }
+        invalidateOwned()
+        return true
+    }
+
+    suspend fun clearPlaylistImage(playlistId: Int): Boolean {
+        val ok = runCatching { api.deletePlaylistImage(playlistId).isSuccessful }
+            .getOrDefault(false)
+        if (ok) {
+            updateEverywhere(playlistId) { it.copy(imageUrl = null) }
             invalidateOwned()
         }
         return ok

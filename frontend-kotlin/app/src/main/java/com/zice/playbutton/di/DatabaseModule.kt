@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.zice.playbutton.data.local.db.PlayButtonDatabase
 import com.zice.playbutton.data.local.db.DownloadedPlaylistDao
 import com.zice.playbutton.data.local.db.MIGRATION_2_3
+import com.zice.playbutton.data.local.db.MIGRATION_3_4
 import com.zice.playbutton.data.local.db.SongCacheDao
 import dagger.Module
 import dagger.Provides
@@ -21,7 +22,7 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): PlayButtonDatabase =
         Room.databaseBuilder(context, PlayButtonDatabase::class.java, "playbutton.db")
-            .addMigrations(MIGRATION_2_3)
+            .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
             // Último recurso para un cambio de esquema sin migración escrita. No
             // es gratis: `downloaded_playlists` no se puede rehacer desde la red,
             // es lo único que dice qué audio hay guardado y a qué playlist

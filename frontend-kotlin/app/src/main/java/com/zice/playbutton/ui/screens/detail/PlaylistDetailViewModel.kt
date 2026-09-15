@@ -1,5 +1,6 @@
 package com.zice.playbutton.ui.screens.detail
 
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -69,6 +70,9 @@ data class PlaylistDetailUiState(
     val editName: String = "",
     val editIsPublic: Boolean = true,
     val isSaving: Boolean = false,
+    val isSavingImage: Boolean = false,
+    /** Fallo de la portada. Se enseña en el diálogo, que es donde se pidió. */
+    val imageError: UiError? = null,
     val storage: PlaylistStorageState = PlaylistStorageState(),
 ) {
     /**
@@ -311,7 +315,7 @@ class PlaylistDetailViewModel @Inject constructor(
     }
 
     fun closeEdit() {
-        _uiState.value = _uiState.value.copy(editVisible = false)
+        _uiState.value = _uiState.value.copy(editVisible = false, imageError = null)
     }
 
     fun onEditNameChange(value: String) {
@@ -333,6 +337,23 @@ class PlaylistDetailViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(
                 isSaving = false,
                 editVisible = !ok,
+                playlist = playlistRepository.findCached(playlistId) ?: _uiState.value.playlist,
+            )
+        }
+    }
+
+    /** La portada se guarda al momento, sin esperar a confirmar el diálogo. */
+    fun setImage(uri: Uri) = changeImage { playlistRepository.setPlaylistImage(playlistId, uri) }
+
+    fun clearImage() = changeImage { playlistRepository.clearPlaylistImage(playlistId) }
+
+    private fun changeImage(change: suspend () -> Boolean) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isSavingImage = true, imageError = null)
+            val ok = change()
+            _uiState.value = _uiState.value.copy(
+                isSavingImage = false,
+                imageError = if (ok) null else UiError.Generic,
                 playlist = playlistRepository.findCached(playlistId) ?: _uiState.value.playlist,
             )
         }

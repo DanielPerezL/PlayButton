@@ -114,13 +114,42 @@ export const renameArtist = async (id: string, name: string): Promise<void> => {
   await throwIfFailed(response, "renombrar artista");
 };
 
+/**
+ * Sube la portada de una canción, artista o playlist. Las tres rutas tienen la
+ * misma forma, así que el recurso viaja como parte del camino.
+ */
+export const setImage = async (
+  resource: "songs" | "artists" | "playlists",
+  id: string,
+  image: File
+): Promise<void> => {
+  const formData = new FormData();
+  formData.append("image", image);
+
+  const response = await customFetch(`${BASE_URL}/${resource}/${id}/image`, {
+    method: "PUT",
+    body: formData,
+  });
+  await throwIfFailed(response, "subir la imagen");
+};
+
+export const deleteImage = async (
+  resource: "songs" | "artists" | "playlists",
+  id: string
+): Promise<void> => {
+  const response = await customFetch(`${BASE_URL}/${resource}/${id}/image`, {
+    method: "DELETE",
+  });
+  await throwIfFailed(response, "quitar la imagen");
+};
+
 export const createSong = async (data: {
   title: string;
   artists: string[];
   mp3: File;
   shown_zenn?: boolean;
   normalize?: boolean;
-}) => {
+}): Promise<string | null> => {
   const formData = new FormData();
   formData.append("title", data.title);
   // Como array JSON y no separados por comas: un artista puede llevarlas en
@@ -136,6 +165,11 @@ export const createSong = async (data: {
   });
 
   await throwIfFailed(response, "crear canción");
+
+  // El id sale de la cabecera Location del 201, que es lo único que devuelve el
+  // backend. Hace falta para colgarle la portada después de crearla.
+  const location = response!.headers.get("Location");
+  return location?.split("/").pop() ?? null;
 };
 
 export const deleteSong = async (id: string) => {

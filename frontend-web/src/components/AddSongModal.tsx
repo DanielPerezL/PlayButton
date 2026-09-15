@@ -1,8 +1,9 @@
 // AddSongModal.tsx
 import React, { useEffect, useState } from "react";
-import { createSong } from "../services/apiService";
+import { createSong, setImage } from "../services/apiService";
 import { parseArtists } from "../services/songName";
 import ArtistsField from "./ArtistsField";
+import CoverField from "./CoverField";
 import { toast } from "react-toastify";
 import { Popover } from "bootstrap";
 import HelpPopover from "./HelpPopover";
@@ -23,6 +24,7 @@ const AddSongModal: React.FC<AddSongModalProps> = ({
   const [artists, setArtists] = useState("");
   const [title, setTitle] = useState("");
   const [mp3File, setMp3File] = useState<File | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
   const [shownZenn, setShownZenn] = useState(true);
   const [normalize, setNormalize] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -39,6 +41,7 @@ const AddSongModal: React.FC<AddSongModalProps> = ({
     setArtists("");
     setTitle("");
     setMp3File(null);
+    setCoverFile(null);
     setShownZenn(true);
     setNormalize(true);
     setHasCopyrightConsent(false);
@@ -69,13 +72,24 @@ const AddSongModal: React.FC<AddSongModalProps> = ({
 
     setLoading(true);
     try {
-      await createSong({
+      const songId = await createSong({
         title: title.trim(),
         artists: artistNames,
         mp3: mp3File,
         shown_zenn: shownZenn,
         normalize: normalize,
       });
+
+      // La portada va aparte porque hasta aquí no hay id al que colgarla. Si
+      // falla, la canción ya está creada: se avisa y se puede añadir editando.
+      if (coverFile && songId) {
+        try {
+          await setImage("songs", songId, coverFile);
+        } catch {
+          toast.warning("La canción se creó, pero no se pudo subir la portada");
+        }
+      }
+
       toast.success(`Canción '${title.trim()}' creada correctamente`);
       onSongAdded();
       setDefaults();
@@ -122,6 +136,10 @@ const AddSongModal: React.FC<AddSongModalProps> = ({
                     required
                   />
                 </div>
+                <CoverField
+                  file={coverFile}
+                  onFileChange={setCoverFile}
+                />
                 <div className="mb-3">
                   <label className="form-label">Archivo MP3</label>
                   <input

@@ -6,6 +6,7 @@ import com.zice.playbutton.BuildConfig
 import com.zice.playbutton.data.local.AudioCache
 import com.zice.playbutton.data.local.AudioCacheSize
 import com.zice.playbutton.data.local.AudioUsage
+import com.zice.playbutton.data.local.ImageCache
 import com.zice.playbutton.data.local.SettingsStore
 import com.zice.playbutton.data.repo.DownloadsUsage
 import com.zice.playbutton.data.repo.OfflineLibrary
@@ -48,6 +49,7 @@ class SettingsViewModel @Inject constructor(
     private val settingsStore: SettingsStore,
     private val playerConnection: PlayerConnection,
     private val audioCache: AudioCache,
+    private val imageCache: ImageCache,
     private val offlineLibrary: OfflineLibrary,
 ) : ViewModel() {
 
@@ -66,6 +68,11 @@ class SettingsViewModel @Inject constructor(
 
     private val _audioCacheUsage = MutableStateFlow(AudioUsage())
     val audioCacheUsage = _audioCacheUsage.asStateFlow()
+
+    /** Lo que ocupan las portadas. Coil las guarda todas juntas, vengan de
+     *  navegar o de una descarga, así que no se pueden separar. */
+    private val _imageCacheBytes = MutableStateFlow(0L)
+    val imageCacheBytes = _imageCacheBytes.asStateFlow()
 
     private val _downloadsUsage = MutableStateFlow(DownloadsUsage())
     val downloadsUsage = _downloadsUsage.asStateFlow()
@@ -90,9 +97,17 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Vacía también las portadas. Es lo que significa vaciar la caché: se
+     * vuelven a pedir solas en cuanto haya servidor. Mientras tanto, una
+     * playlist descargada se escucha igual pero se ve con los huecos.
+     */
     fun clearAudioCache() {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) { audioCache.clear() }
+            withContext(Dispatchers.IO) {
+                audioCache.clear()
+                imageCache.clear()
+            }
             refreshCacheUsage()
         }
     }
@@ -119,6 +134,7 @@ class SettingsViewModel @Inject constructor(
     fun refreshCacheUsage() {
         viewModelScope.launch {
             _audioCacheUsage.value = withContext(Dispatchers.IO) { audioCache.usage() }
+            _imageCacheBytes.value = withContext(Dispatchers.IO) { imageCache.sizeBytes() }
             _downloadsUsage.value = offlineLibrary.usage()
         }
     }

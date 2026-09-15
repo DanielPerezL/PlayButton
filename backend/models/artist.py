@@ -1,4 +1,5 @@
 from config import db
+from .image import image_url_of
 
 
 # Tabla de asociacion entre Songs y Artists. `position` conserva el orden en
@@ -25,6 +26,8 @@ class Artist(db.Model):
     """
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False, unique=True)
+    image_id = db.Column(db.Integer, db.ForeignKey('image.id', ondelete='SET NULL'), nullable=True)
+    image = db.relationship('Image')
 
     songs = db.relationship(
         'Song',
@@ -49,6 +52,7 @@ class Artist(db.Model):
             # canciones, asi que viaja con el artista y no hace falta cruzarlas.
             "playlist_id": playlist.id if playlist else None,
             "songs_count": len(self.songs),
+            "image_url": image_url_of(self.image),
             "favorites_count": len(playlist.favorited_by) if playlist else 0,
             "is_favorite": (
                 any(u.id == current_user_id for u in playlist.favorited_by)

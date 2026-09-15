@@ -309,6 +309,39 @@ def _artists_and_titles():
     db.session.commit()
 
 
+
+# ------------------------------------------------------------ imagenes (0004)
+
+_IMAGE_OWNER_TABLES = ("song", "artist", "playlist")
+
+
+@step(
+    "0004_images",
+    already_applied=lambda: all(
+        has_column(table, "image_id") for table in _IMAGE_OWNER_TABLES
+    ),
+)
+def _images():
+    """
+    Cuelga una portada opcional de canciones, artistas y playlists. La tabla
+    `image` la crea create_all por ser nueva; aqui solo van las claves ajenas
+    de las tablas que ya existian.
+
+    Se comprueba tabla a tabla porque `artist` puede haber nacido ya con la
+    columna: en una base de datos que no llegara a pasar por la 0003, la crea
+    create_all a partir del modelo, que ya la declara.
+    """
+    for table in _IMAGE_OWNER_TABLES:
+        if has_column(table, "image_id"):
+            continue
+        db.session.execute(text(
+            f"ALTER TABLE `{table}` ADD COLUMN image_id INT NULL, "
+            f"ADD CONSTRAINT fk_{table}_image FOREIGN KEY (image_id) "
+            "REFERENCES `image` (id) ON DELETE SET NULL"
+        ))
+    db.session.commit()
+
+
 # ------------------------------------------------------------------- registro
 
 def _ensure_registry_table():

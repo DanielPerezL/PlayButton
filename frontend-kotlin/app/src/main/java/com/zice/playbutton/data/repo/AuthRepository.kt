@@ -1,6 +1,7 @@
 package com.zice.playbutton.data.repo
 
 import com.zice.playbutton.data.local.AudioCache
+import com.zice.playbutton.data.local.ImageCache
 import com.zice.playbutton.data.local.AudioOwner
 import com.zice.playbutton.data.local.SessionStore
 import com.zice.playbutton.data.local.SettingsStore
@@ -19,6 +20,7 @@ class AuthRepository @Inject constructor(
     private val playlistRepository: PlaylistRepository,
     private val songRepository: SongRepository,
     private val audioCache: AudioCache,
+    private val imageCache: ImageCache,
     private val offlineLibrary: OfflineLibrary,
 ) {
     val isLoggedIn: Flow<Boolean> = sessionStore.isLoggedIn
@@ -64,6 +66,9 @@ class AuthRepository @Inject constructor(
             audioCache.clear()
             offlineLibrary.clear()
             songRepository.clearCache()
+            // Las portadas se van por lo mismo: son de otro servidor, y sus
+            // URL ni siquiera apuntan ya a donde deben.
+            imageCache.clear()
         }
         settingsStore.setAudioOwner(owner)
     }
