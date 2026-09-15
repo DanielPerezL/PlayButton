@@ -1,4 +1,5 @@
 from flask_jwt_extended import create_access_token, get_jwt
+from config import jwt
 from models import User, Playlist
 import os
 from exceptions import ForbiddenException
@@ -29,10 +30,32 @@ def has_more_results(query, offset, limit):
     return query.offset(offset + limit).first() is not None
 
 #MANEJO DE TOKENS
+# Version de credenciales que viaja dentro del token. Si no coincide con la
+# que tiene el usuario en base de datos, el token se emitio antes del ultimo
+# cambio de contrasena y ya no vale.
+TOKEN_VERSION_CLAIM = "tv"
+
 #CREACION    
 def create_tokens(user):
-    access_token = create_access_token(identity=str(user.id))
+    access_token = create_access_token(
+        identity=str(user.id),
+        additional_claims={TOKEN_VERSION_CLAIM: user.token_version},
+    )
     return access_token 
+
+#REVOCACION
+@jwt.token_in_blocklist_loader
+def is_token_revoked(jwt_header, jwt_payload):
+    """
+    Se ejecuta en cada @jwt_required(). Devolver True hace que la peticion
+    termine en 401, que es lo que los clientes ya interpretan como sesion
+    caducada. Se comprueba aqui, y no en get_user_from_token, para que ninguna
+    vista llegue a ejecutarse con un token revocado.
+    """
+    user = User.query.get(jwt_payload.get("sub"))
+    if user is None:
+        return True
+    return jwt_payload.get(TOKEN_VERSION_CLAIM) != user.token_version
 
 #CONSULTA
 def get_user_from_token(decoded_token):

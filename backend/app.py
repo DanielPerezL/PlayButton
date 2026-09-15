@@ -6,6 +6,7 @@ from controllers import (
     suggestions_controller,
     user_controller,
 )
+from sqlalchemy import inspect, text
 from sqlalchemy.exc import SQLAlchemyError
 from models import User
 import os
@@ -15,8 +16,25 @@ from services.users_service import UsersService
 import sys
 
 
+def ensure_token_version_column():
+    """
+    create_all() crea las tablas que faltan, pero no altera las que ya existen.
+    Al actualizar un despliegue anterior hay que anadir la columna antes de que
+    cualquier consulta la mencione, o todas fallarian con "Unknown column".
+    """
+    table = User.__tablename__
+    existing = {column["name"] for column in inspect(db.engine).get_columns(table)}
+    if "token_version" in existing:
+        return
+    db.session.execute(
+        text(f"ALTER TABLE `{table}` ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0")
+    )
+    db.session.commit()
+
+
 with app.app_context():
     db.create_all()
+    ensure_token_version_column()
     duplicates = User.query.filter(User.nickname == "admin", User.id != 1).all()
     for user in duplicates:
         try:
