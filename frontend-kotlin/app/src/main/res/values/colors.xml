@@ -3,4 +3,11 @@
     <!-- Surface0: el fondo raiz de la identidad, tambien detras del icono. -->
     <color name="ic_launcher_background">#0A0710</color>
     <color name="surface_0">#0A0710</color>
+
+    <!--
+      Brand500, la marca canonica (ui/theme/Color.kt). Aqui como recurso porque
+      lo necesita NotificationCompat, que trabaja con colores de Android y no
+      con los de Compose.
+    -->
+    <color name="brand_500">#B000F0</color>
 </resources>

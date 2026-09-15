@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.zice.playbutton.MainActivity
 import com.zice.playbutton.R
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -98,6 +99,10 @@ class DownloadNotifications @Inject constructor(
         .setContentIntent(openAppIntent())
         .setCategory(NotificationCompat.CATEGORY_PROGRESS)
         .setSilent(channelId == PROGRESS_CHANNEL)
+        // Tine el icono y el acento con el morado de la marca. Android reserva
+        // el fondo de color (setColorized) para los avisos de un servicio en
+        // primer plano, y estos no lo son, asi que lo ignoraria.
+        .setColor(ContextCompat.getColor(context, R.color.brand_500))
 
     /**
      * Dos canales y no uno: así el usuario puede silenciar el «ya está» sin
