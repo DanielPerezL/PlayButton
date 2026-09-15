@@ -43,7 +43,6 @@ Ejecuta el script de lanzamiento:
 ```
 
 > ⚠️ Nota: La primera vez tardará aproximadamente 10 minutos.
-> Si falla al crear las tablas de la base de datos, vuelve a ejecutar el script; esta vez debería completarse correctamente.
 
 ---
 

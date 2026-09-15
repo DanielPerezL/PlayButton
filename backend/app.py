@@ -8,7 +8,7 @@ from controllers import (
     user_controller,
 )
 from sqlalchemy.exc import SQLAlchemyError
-from migrations import run_migrations
+from migrations import run_migrations, schema_lock
 from models import User
 import os
 from exceptions import AppException
@@ -18,8 +18,15 @@ import sys
 
 
 with app.app_context():
-    db.create_all()
+    # Crea las tablas que falten y aplica las migraciones, serializado entre
+    # los workers de gunicorn.
     run_migrations()
+
+# El alta del administrador va bajo el mismo lock: en una base recien creada
+# los dos workers intentan insertar el usuario 1 a la vez, y al que pierde le
+# salta la clave duplicada y se apaga con sys.exit(1). Junto con la creacion
+# de tablas, es lo que hacia fallar la primera ejecucion.
+with app.app_context(), schema_lock():
     duplicates = User.query.filter(User.nickname == "admin", User.id != 1).all()
     for user in duplicates:
         try:

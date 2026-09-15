@@ -15,6 +15,7 @@ ejecutada dos veces en paralelo si hace dano.
 
 import sys
 import unicodedata
+from contextlib import contextmanager
 from datetime import datetime
 
 from sqlalchemy import inspect, text
@@ -55,7 +56,14 @@ def step(name, already_applied=None, report=None):
     return register
 
 
+def has_table(table):
+    return inspect(db.engine).has_table(table)
+
+
 def has_column(table, column):
+    """False tambien si la tabla no existe: en una base vacia no hay columna."""
+    if not has_table(table):
+        return False
     return column in {c["name"] for c in inspect(db.engine).get_columns(table)}
 
 
@@ -253,7 +261,11 @@ def _link_artist_playlists():
 
 @step(
     "0003_artists_and_titles",
-    already_applied=lambda: has_column("song", "title") and not has_column("song", "name"),
+    # Sin tabla `song` no hay nada que migrar: la crea create_all con el
+    # esquema final.
+    already_applied=lambda: not has_table("song") or (
+        has_column("song", "title") and not has_column("song", "name")
+    ),
     report=_report_artists_and_titles,
 )
 def _artists_and_titles():
@@ -318,7 +330,8 @@ _IMAGE_OWNER_TABLES = ("song", "artist", "playlist")
 @step(
     "0004_images",
     already_applied=lambda: all(
-        has_column(table, "image_id") for table in _IMAGE_OWNER_TABLES
+        not has_table(table) or has_column(table, "image_id")
+        for table in _IMAGE_OWNER_TABLES
     ),
 )
 def _images():
@@ -397,33 +410,50 @@ def _run_pending(dry_run=False):
     return results
 
 
-def run_migrations(dry_run=False):
+@contextmanager
+def schema_lock():
     """
-    Aplica las migraciones que falten y devuelve que se ha hecho con cada una.
-    Con dry_run no escribe nada: solo informa de lo que quedaria por aplicar.
-    """
-    _ensure_registry_table()
+    Serializa el arranque entre los workers de gunicorn.
 
-    # El lock vive en la conexion que lo pide, asi que se reserva una aparte y
-    # se mantiene abierta: db.session devuelve la suya al pool en cada commit
-    # y con ella se soltaria el lock a mitad de la migracion.
-    with db.engine.connect() as lock_connection:
-        acquired = lock_connection.execute(
+    El lock vive en la conexion que lo pide, asi que se reserva una aparte y se
+    mantiene abierta: db.session devuelve la suya al pool en cada commit, y con
+    ella se soltaria el lock a mitad del trabajo.
+    """
+    with db.engine.connect() as connection:
+        acquired = connection.execute(
             text("SELECT GET_LOCK(:name, :timeout)"),
             {"name": LOCK_NAME, "timeout": LOCK_TIMEOUT_SECONDS},
         ).scalar()
 
         if acquired != 1:
             raise RuntimeError(
-                f"No se ha podido tomar el lock de migraciones en {LOCK_TIMEOUT_SECONDS}s"
+                f"No se ha podido tomar el lock de arranque en {LOCK_TIMEOUT_SECONDS}s"
             )
 
         try:
-            return _run_pending(dry_run)
+            yield
         finally:
-            lock_connection.execute(
-                text("SELECT RELEASE_LOCK(:name)"), {"name": LOCK_NAME}
-            )
+            connection.execute(text("SELECT RELEASE_LOCK(:name)"), {"name": LOCK_NAME})
+
+
+def run_migrations(dry_run=False):
+    """
+    Deja el esquema al dia: crea las tablas que falten y aplica las
+    migraciones pendientes. Devuelve que se ha hecho con cada una.
+
+    Con dry_run no escribe nada, ni siquiera las tablas: solo informa de lo
+    que quedaria por aplicar.
+    """
+    _ensure_registry_table()
+
+    with schema_lock():
+        if not dry_run:
+            # create_all tambien va dentro del lock. Mira que tablas hay y crea
+            # las que faltan, y con varios workers arrancando a la vez los dos
+            # pueden ver que falta la misma y chocar al crearla: "Table 'x'
+            # already exists", el worker se cae y gunicorn se apaga entero.
+            db.create_all()
+        return _run_pending(dry_run)
 
 
 def main(argv):
