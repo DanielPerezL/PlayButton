@@ -16,7 +16,7 @@ class Song(db.Model):
     """
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
-    shown_zenn = db.Column(db.Boolean, default=True)
+    shown_zen = db.Column(db.Boolean, default=True)
     image_id = db.Column(db.Integer, db.ForeignKey('image.id', ondelete='SET NULL'), nullable=True)
     image = db.relationship('Image')
 
@@ -48,7 +48,7 @@ class Song(db.Model):
     def to_detailed_dto(self):
         return {
             **self.to_dto(),
-            "shown_zenn": self.shown_zenn,
+            "shown_zen": self.shown_zen,
             # El panel necesita distinguir la portada propia de la heredada del
             # artista para saber si hay algo que quitar.
             "own_image_url": image_url_of(self.image),

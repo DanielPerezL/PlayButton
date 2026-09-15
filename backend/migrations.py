@@ -355,6 +355,27 @@ def _images():
     db.session.commit()
 
 
+# --------------------------------------------------------- modo zen (0005)
+
+
+@step(
+    "0005_shown_zen",
+    # Sin tabla `song` no hay nada que renombrar: create_all la crea ya con el
+    # nombre nuevo.
+    already_applied=lambda: not has_table("song") or has_column("song", "shown_zen"),
+)
+def _shown_zen():
+    """
+    Renombra `shown_zenn` a `shown_zen`. El modo se llamaba Zenn en el backend
+    y en el panel, y Zen en la aplicacion movil; se queda con una sola n en
+    todas partes, y la columna es lo ultimo que arrastraba el nombre viejo.
+    """
+    db.session.execute(
+        text("ALTER TABLE `song` RENAME COLUMN `shown_zenn` TO `shown_zen`")
+    )
+    db.session.commit()
+
+
 # ------------------------------------------------------------------- registro
 
 def _ensure_registry_table():

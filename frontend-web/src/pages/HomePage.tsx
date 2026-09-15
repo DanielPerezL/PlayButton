@@ -146,18 +146,18 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Modo Zenn */}
+      {/* Modo Zen */}
       <section className="pb-section pt-0">
         <div className="container">
           <div className="pb-highlight">
             <div className="row align-items-center g-4">
               <div className="col-md-8">
-                <span className="pb-section__eyebrow">Modo Zenn</span>
+                <span className="pb-section__eyebrow">Modo Zen</span>
                 <h2 className="pb-section__title mb-3">
                   Dale al play y ya está
                 </h2>
                 <p className="mb-0" style={{ color: "var(--pb-text-2)" }}>
-                  A veces no quieres elegir. El modo Zenn es el que se abre por
+                  A veces no quieres elegir. El modo Zen es el que se abre por
                   defecto en la app: reproduce tu biblioteca en aleatorio, sin
                   seleccionar ninguna lista. Tú decides desde el panel qué
                   pistas entran en esa rotación.

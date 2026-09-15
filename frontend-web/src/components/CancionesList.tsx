@@ -138,8 +138,8 @@ const CancionesList: React.FC = () => {
                           {formatArtists(song.artists) || "Sin artista"}
                         </p>
                         <p className="card-text mb-0">
-                          Mostrada en Zenn:{" "}
-                          <strong>{song.shown_zenn ? "Sí" : "No"}</strong>
+                          Mostrada en Zen:{" "}
+                          <strong>{song.shown_zen ? "Sí" : "No"}</strong>
                         </p>
                         {!song.own_image_url && song.image_url && (
                           <span className="badge text-bg-secondary mt-2">

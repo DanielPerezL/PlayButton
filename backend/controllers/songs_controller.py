@@ -51,10 +51,10 @@ def create_song():
     mp3_file = request.files['mp3']
     title = request.form['title']
     artist_names = artist_names_from(request.form.get('artists'))
-    shown_zenn = request.form.get('shown_zenn', 'true').lower() == 'true'
+    shown_zen = request.form.get('shown_zen', 'true').lower() == 'true'
     normalize = request.form.get('normalize', 'true').lower() == 'true'
 
-    id = SongsService.add_song(title, artist_names, mp3_file, shown_zenn, normalize)
+    id = SongsService.add_song(title, artist_names, mp3_file, shown_zen, normalize)
     response = make_response()
     response.status_code = 201
 
@@ -100,13 +100,13 @@ def update_song(song_id):
 
     data = request.get_json()
     new_title = data.get("title")
-    new_zenn = data.get("shown_zenn")
-    if not new_title or new_zenn is None:
+    new_zen = data.get("shown_zen")
+    if not new_title or new_zen is None:
         raise BadRequestException("Falta indicar el nuevo título")
 
     artist_names = artist_names_from(data.get("artists"))
 
-    SongsService.update_song(song_id, new_title, artist_names, new_zenn)
+    SongsService.update_song(song_id, new_title, artist_names, new_zen)
     return '', 204
 
 @app.route('/api/songs', methods=['GET'])
@@ -116,7 +116,7 @@ def get_all_songs():
     limit = request.args.get('limit', 100, type=int)
     q = request.args.get('q', None, type=str)
     details = request.args.get('details', "false", type=str).lower() == 'true'
-    # El modo Zenn se pide de forma explícita. Antes se deducía de que no
+    # El modo Zen se pide de forma explícita. Antes se deducía de que no
     # hubiera término de búsqueda, y listar la biblioteca entera obligaba a
     # los clientes a inventarse uno que casara con todo.
     random = request.args.get('random', "false", type=str).lower() == 'true'

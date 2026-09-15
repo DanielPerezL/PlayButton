@@ -63,7 +63,7 @@ class SongsService():
         return None
 
     @staticmethod
-    def add_song(title, artist_names, mp3_file, shown_zenn=True, normalize=True):
+    def add_song(title, artist_names, mp3_file, shown_zen=True, normalize=True):
         try:
             if not SongsService.__allowed_file(mp3_file.filename):
                 raise BadRequestException()
@@ -83,7 +83,7 @@ class SongsService():
                 raise ConflictException()
 
             new_song = Song(title=title)
-            new_song.shown_zenn = shown_zenn
+            new_song.shown_zen = shown_zen
             db.session.add(new_song)
             db.session.flush()
 
@@ -115,7 +115,7 @@ class SongsService():
             raise AppException(e)
 
     @staticmethod
-    def update_song(song_id, new_title, artist_names, new_zenn):
+    def update_song(song_id, new_title, artist_names, new_zen):
         try:
             song = Song.query.get(song_id)
             if not song:
@@ -128,7 +128,7 @@ class SongsService():
                 raise ConflictException()
 
             song.title = new_title
-            song.shown_zenn = new_zenn
+            song.shown_zen = new_zen
             SongsService.sync_song_artists(song, artist_names)
 
             db.session.commit()
@@ -156,10 +156,10 @@ class SongsService():
                 )
 
             if random:
-                # Modo Zenn. Antes se activaba por la ausencia del parámetro de
+                # Modo Zen. Antes se activaba por la ausencia del parámetro de
                 # búsqueda, lo que obligaba a los clientes a inventarse un
                 # término que casara con todo para poder listar la biblioteca.
-                query = query.filter(Song.shown_zenn.is_(True))
+                query = query.filter(Song.shown_zen.is_(True))
                 songs = query.order_by(func.rand()).limit(limit).all()
             else:
                 songs = query.order_by(Song.id.desc()).offset(offset).limit(limit).all()

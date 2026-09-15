@@ -7,7 +7,7 @@ import CoverField from "./CoverField";
 import { toast } from "react-toastify";
 import { Song } from "../interfaces";
 import HelpPopover from "./HelpPopover";
-import { getZennModeHelp } from "../services/utils";
+import { getZenModeHelp } from "../services/utils";
 import LoadingButton from "./LoadingButton";
 
 interface EditSongModalProps {
@@ -25,7 +25,7 @@ const EditSongModal: React.FC<EditSongModalProps> = ({
 }) => {
   const [artists, setArtists] = useState("");
   const [title, setTitle] = useState("");
-  const [shownZenn, setShownZenn] = useState(true);
+  const [shownZen, setShownZen] = useState(true);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -33,7 +33,7 @@ const EditSongModal: React.FC<EditSongModalProps> = ({
     if (song) {
       setArtists(formatArtists(song.artists));
       setTitle(song.title);
-      setShownZenn(song.shown_zenn);
+      setShownZen(song.shown_zen);
       setCoverFile(null);
     }
   }, [song]);
@@ -65,7 +65,7 @@ const EditSongModal: React.FC<EditSongModalProps> = ({
 
     setLoading(true);
     try {
-      await updateSong(song.id, title.trim(), artistNames, shownZenn);
+      await updateSong(song.id, title.trim(), artistNames, shownZen);
       if (coverFile) await setImage("songs", song.id, coverFile);
       toast.success(`Canción '${title.trim()}' actualizada correctamente`);
       onSongUpdated();
@@ -122,16 +122,16 @@ const EditSongModal: React.FC<EditSongModalProps> = ({
                   <input
                     type="checkbox"
                     className="form-check-input"
-                    id="shownZenn"
-                    checked={shownZenn}
-                    onChange={(e) => setShownZenn(e.target.checked)}
+                    id="shownZen"
+                    checked={shownZen}
+                    onChange={(e) => setShownZen(e.target.checked)}
                   />
-                  <label className="form-check-label" htmlFor="shownZenn">
-                    Mostrar en Zenn
+                  <label className="form-check-label" htmlFor="shownZen">
+                    Mostrar en Zen
                   </label>
                   <HelpPopover
                     bootstrapColor="primary"
-                    content={getZennModeHelp()}
+                    content={getZenModeHelp()}
                   />
                 </div>
               </div>

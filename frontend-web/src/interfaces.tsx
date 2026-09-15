@@ -29,7 +29,7 @@ export interface Song {
   id: string;
   title: string;
   artists: Artist[];
-  shown_zenn: boolean;
+  shown_zen: boolean;
   /** Portada que se muestra. Puede venir heredada del primer artista. */
   image_url: string | null;
   /** Portada propia. Null si la que se ve es la del artista. */

@@ -147,7 +147,7 @@ export const createSong = async (data: {
   title: string;
   artists: string[];
   mp3: File;
-  shown_zenn?: boolean;
+  shown_zen?: boolean;
   normalize?: boolean;
 }): Promise<string | null> => {
   const formData = new FormData();
@@ -155,7 +155,7 @@ export const createSong = async (data: {
   // Como array JSON y no separados por comas: un artista puede llevarlas en
   // el nombre y el backend no tiene forma de saber cuáles separan.
   formData.append("artists", JSON.stringify(data.artists));
-  formData.append("shown_zenn", data.shown_zenn ? "true" : "false");
+  formData.append("shown_zen", data.shown_zen ? "true" : "false");
   formData.append("normalize", data.normalize ? "true" : "false");
   formData.append("mp3", data.mp3);
 
@@ -185,12 +185,12 @@ export const updateSong = async (
   id: string,
   title: string,
   artists: string[],
-  shown_zenn: boolean
+  shown_zen: boolean
 ) => {
   const response = await customFetch(`${BASE_URL}/songs/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title, artists, shown_zenn }),
+    body: JSON.stringify({ title, artists, shown_zen }),
   });
 
   await throwIfFailed(response, "actualizar canción");
