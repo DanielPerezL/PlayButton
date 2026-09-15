@@ -10,6 +10,7 @@ import com.zice.playbutton.player.PlayerConnection
 import com.zice.playbutton.player.PlayerVisibility
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -45,7 +46,22 @@ class MainViewModel @Inject constructor(
     val playerState = playerConnection.state
     val positionMs = playerConnection.positionMs
 
-    val playerExpanded = playerVisibility.isExpanded
+    /**
+     * Si el reproductor grande esta delante. No basta con que se haya
+     * desplegado: tambien tiene que haber algo que enseñar.
+     *
+     * El servicio de reproduccion se muere solo cuando no queda nada sonando,
+     * asi que al volver a la app la cola puede llegar vacia. La capa seguia
+     * encima con un reproductor sin cancion, y como ademas apaga la navegacion
+     * de debajo y se come los toques, dejaba la app muerta: ni boton de volver
+     * ni pestañas. Atando las dos cosas, la regla vale para la capa, para el
+     * escudo de toques y para el gesto de volver a la vez.
+     */
+    val playerExpanded = combine(
+        playerVisibility.isExpanded,
+        playerConnection.state,
+    ) { expanded, state -> expanded && state.hasPlayer }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val isLoggedIn = authRepository.isLoggedIn
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

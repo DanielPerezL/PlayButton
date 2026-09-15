@@ -14,6 +14,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.zice.playbutton.player.PlayerConnection
+import com.zice.playbutton.player.PlayerVisibility
 import com.zice.playbutton.ui.nav.MainViewModel
 import com.zice.playbutton.ui.nav.PlayButtonApp
 import com.zice.playbutton.ui.screens.access.AccessScreen
@@ -25,6 +26,7 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
 
     @Inject lateinit var playerConnection: PlayerConnection
+    @Inject lateinit var playerVisibility: PlayerVisibility
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -66,8 +68,16 @@ class MainActivity : ComponentActivity() {
      * vinculado es lo que impedía que la app terminase al cerrarla: un servicio
      * con clientes atados sobrevive a su propio `stopSelf`. La música no se
      * entera —suena en el servicio—, y al volver se reconecta y se resincroniza.
+     *
+     * El reproductor grande se recoge aquí, no al volver: el proceso puede
+     * sobrevivir a que se cierre la app, y quien la reabría al poco se
+     * encontraba la capa tal cual la dejó, tapando el sitio en el que estaba.
+     * Hacerlo ahora es lo mismo que darle a la flecha de bajar antes de irse,
+     * y así al volver no se ve el reproductor caerse solo. Lo que suena sigue
+     * a mano en el mini-reproductor, que es de donde se vuelve a abrir.
      */
     override fun onStop() {
+        playerVisibility.collapse()
         playerConnection.release()
         super.onStop()
     }

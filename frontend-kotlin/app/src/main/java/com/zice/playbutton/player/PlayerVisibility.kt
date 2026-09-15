@@ -15,6 +15,10 @@ import javax.inject.Singleton
  * playlist entera, una canción suelta de la lista—. Pasarlo por callbacks
  * desde la navegación obligaba a repetir la regla en cada pantalla, con lo
  * fácil que es que a la siguiente se le olvide.
+ *
+ * Desplegado no es lo mismo que visible: la raíz de la app solo enseña la capa
+ * si además hay algo que escuchar. Aquí se guarda lo que ha pedido el usuario,
+ * no lo que acaba pintándose.
  */
 @Singleton
 class PlayerVisibility @Inject constructor() {

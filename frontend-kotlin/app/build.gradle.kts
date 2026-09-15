@@ -24,8 +24,8 @@ android {
         applicationId = "com.zice.playbutton"
         minSdk = 26
         targetSdk = 37
-        versionCode = 45
-        versionName = "0.9.1"
+        versionCode = 46
+        versionName = "0.9.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

@@ -44,8 +44,17 @@ data class PlayerState(
     val queue: List<QueueEntry> = emptyList(),
     val currentIndex: Int = 0,
     val sourceName: String? = null,
+    /**
+     * Se ha pedido musica que todavia no ha llegado. El Modo Zen pide una tanda
+     * al catalogo por red, asi que entre el toque y la primera cancion la cola
+     * esta vacia sin que eso signifique que no haya nada que escuchar.
+     */
+    val isPreparing: Boolean = false,
 ) {
     val hasContent: Boolean get() = songId != null
+
+    /** Hay reproductor que enseñar: algo cargado, o algo en camino. */
+    val hasPlayer: Boolean get() = hasContent || isPreparing
 }
 
 /**
@@ -78,6 +87,13 @@ class PlayerConnection @Inject constructor(
     private var controllerFuture: ListenableFuture<MediaController>? = null
 
     private var positionTicker: Job? = null
+
+    /**
+     * Ver [PlayerState.isPreparing]. Vive aparte del estado porque [syncState]
+     * lo rehace entero a partir del reproductor, y el reproductor no sabe nada
+     * de lo que se le ha pedido y todavia no ha llegado.
+     */
+    private var preparing = false
 
     private val artworkUri by lazy { MediaItems.fallbackArtwork(context.packageName) }
 
@@ -171,6 +187,7 @@ class PlayerConnection @Inject constructor(
             queue = currentQueue(player),
             currentIndex = player.currentMediaItemIndex,
             sourceName = playbackQueue.sourceName,
+            isPreparing = preparing,
         )
         _positionMs.value = player.currentPosition.coerceAtLeast(0L)
 
@@ -223,10 +240,27 @@ class PlayerConnection @Inject constructor(
     /** Modo Zen: selección aleatoria de todo el catálogo, en bucle. */
     fun playZen() {
         playbackQueue.setMode(PlaybackMode.Zen)
+        // Pedir la tanda tarda lo que tarde la red, y hasta que llegue la cola
+        // sigue vacia. La interfaz esconde el reproductor cuando no hay nada
+        // que enseñar, asi que sin avisar de que lo pedido viene en camino la
+        // capa se cerraba sola justo despues de abrirse.
+        setPreparing(true)
         scope.launch {
-            val songs = runCatching { songRepository.zenBatch() }.getOrDefault(emptyList())
-            if (songs.isNotEmpty()) setQueue(QueueBuilder.shuffled(songs))
+            try {
+                val songs = runCatching { songRepository.zenBatch() }.getOrDefault(emptyList())
+                if (songs.isNotEmpty()) setQueue(QueueBuilder.shuffled(songs))
+            } finally {
+                // Si no ha venido nada, esto es tambien lo que recoge el
+                // reproductor en lugar de dejarlo cargando para siempre.
+                setPreparing(false)
+            }
         }
+    }
+
+    private fun setPreparing(value: Boolean) {
+        if (preparing == value) return
+        preparing = value
+        _state.value = _state.value.copy(isPreparing = value)
     }
 
     private fun setQueue(songs: List<Song>) {
@@ -284,6 +318,7 @@ class PlayerConnection @Inject constructor(
             clearMediaItems()
         }
         playbackQueue.clear()
+        preparing = false
         _state.value = PlayerState(isConnected = controller != null)
         _positionMs.value = 0L
     }
