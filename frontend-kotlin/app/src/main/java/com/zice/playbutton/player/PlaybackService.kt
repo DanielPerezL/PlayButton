@@ -36,6 +36,15 @@ import javax.inject.Inject
  * la reproducción sobrevive a la navegación y a que la interfaz se destruya
  * — en la app React Native toda la lógica estaba en un componente montado,
  * de ahí buena parte de sus rarezas al cambiar de pantalla.
+ *
+ * De cuándo morir se encarga el `onTaskRemoved` de Media3, que ya hace lo que
+ * queremos: al quitar la app de recientes pausa y se para, salvo que haya
+ * música sonando de verdad. Había aquí un sustituto que miraba `playWhenReady`
+ * y no se enteraba de la canción que está cargando pero todavía no suena.
+ *
+ * Para que ese `stopSelf` sirva de algo nadie puede quedarse vinculado al
+ * servicio, porque un servicio con clientes atados no se destruye: de soltarse
+ * a tiempo se encarga [PlayerConnection.release].
  */
 @OptIn(UnstableApi::class)
 @AndroidEntryPoint
@@ -177,18 +186,6 @@ class PlaybackService : MediaSessionService() {
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? =
         mediaSession
-
-    /**
-     * Al quitar la app de recientes se para si no está sonando nada, igual que
-     * el comportamiento «detener y quitar la notificación» de la app anterior.
-     * Si la música sigue, el servicio permanece en primer plano.
-     */
-    override fun onTaskRemoved(rootIntent: Intent?) {
-        val player = exoPlayer
-        if (player == null || !player.playWhenReady || player.mediaItemCount == 0) {
-            stopSelf()
-        }
-    }
 
     override fun onDestroy() {
         scope.cancel()

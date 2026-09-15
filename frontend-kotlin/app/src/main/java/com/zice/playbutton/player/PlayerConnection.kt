@@ -9,12 +9,14 @@ import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.zice.playbutton.R
 import com.zice.playbutton.data.repo.SongRepository
 import com.zice.playbutton.domain.Song
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -69,20 +71,39 @@ class PlayerConnection @Inject constructor(
 
     private var controller: MediaController? = null
 
+    /**
+     * El vínculo con el servicio, guardado aparte del controlador para poder
+     * soltarlo aunque la conexión aún no se haya completado.
+     */
+    private var controllerFuture: ListenableFuture<MediaController>? = null
+
+    private var positionTicker: Job? = null
+
     private val artworkUri by lazy {
         "android.resource://${context.packageName}/${R.drawable.notification_artwork}".toUri()
     }
 
-    init {
-        connect()
-        startPositionTicker()
-    }
+    /**
+     * Se engancha al servicio; la llama la pantalla al volver al primer plano.
+     *
+     * Conectarse lo vincula —un `MediaController` hace `bindService` por
+     * dentro—, y un servicio vinculado no se destruye aunque él mismo pida
+     * pararse. Por eso la conexión dura lo que la pantalla y no lo que el
+     * proceso: abriéndola en el `init` de este singleton, que no se cierra
+     * nunca, la app seguía viva en segundo plano después de cerrarla y de
+     * quitar la notificación del reproductor.
+     */
+    fun connect() {
+        if (controllerFuture != null) return
 
-    private fun connect() {
         val token = SessionToken(context, ComponentName(context, PlaybackService::class.java))
         val future = MediaController.Builder(context, token).buildAsync()
+        controllerFuture = future
         future.addListener(
             {
+                // Si nos han soltado mientras se conectaba, del controlador ya
+                // se encarga `releaseFuture` y aquí no hay nada que quedarse.
+                if (controllerFuture !== future) return@addListener
                 controller = runCatching { future.get() }.getOrNull()
                 controller?.let { player ->
                     player.addListener(ControllerListener())
@@ -94,19 +115,43 @@ class PlayerConnection @Inject constructor(
     }
 
     /**
+     * Suelta el servicio al irse la pantalla. Lo que esté sonando no se entera
+     * —vive en el servicio, no aquí—, pero si no hay nada que reproducir esto
+     * es lo que deja que el servicio se destruya y el proceso termine.
+     */
+    fun release() {
+        val future = controllerFuture ?: return
+        controllerFuture = null
+        controller = null
+        stopPositionTicker()
+        // Vale también con la conexión a medias: suelta el controlador en
+        // cuanto exista.
+        MediaController.releaseFuture(future)
+        // El resto del estado se conserva: al volver la pantalla se pinta lo
+        // último que se sabía y `syncState` lo corrige en cuanto reconecta.
+        _state.value = _state.value.copy(isConnected = false)
+    }
+
+    /**
      * La posición no se puede observar con eventos: se sondea, pero solo
-     * mientras algo suena, para no despertar la interfaz sin motivo.
+     * mientras algo suena. El sondeo se arranca y se para con la reproducción
+     * —antes era un bucle infinito que seguía despertando el proceso cada medio
+     * segundo sin nada que contar—.
      */
     private fun startPositionTicker() {
-        scope.launch {
+        if (positionTicker?.isActive == true) return
+        positionTicker = scope.launch {
             while (true) {
-                val player = controller
-                if (player != null && player.isPlaying) {
-                    _positionMs.value = player.currentPosition.coerceAtLeast(0L)
-                }
+                val player = controller ?: break
+                _positionMs.value = player.currentPosition.coerceAtLeast(0L)
                 delay(500)
             }
         }
+    }
+
+    private fun stopPositionTicker() {
+        positionTicker?.cancel()
+        positionTicker = null
     }
 
     private fun syncState() {
@@ -126,6 +171,8 @@ class PlayerConnection @Inject constructor(
             sourceName = playbackQueue.sourceName,
         )
         _positionMs.value = player.currentPosition.coerceAtLeast(0L)
+
+        if (player.isPlaying) startPositionTicker() else stopPositionTicker()
     }
 
     private fun currentQueue(player: Player): List<QueueEntry> =
