@@ -1,6 +1,7 @@
 import { authEvents } from "../events/authEvents";
 import {
   ErrorResponse,
+  GetArtistsResponse,
   GetSongsResponse,
   GetSuggestionsResponse,
   GetUsersResponse,
@@ -77,26 +78,54 @@ export const logout = () => {
 export const getSongs = async (
   offset = 0,
   limit = 20,
-  name?: string
+  query?: string
 ): Promise<GetSongsResponse | null> => {
   const params = new URLSearchParams({
     offset: String(offset),
     limit: String(limit),
     details: "true",
   });
-  if (name) params.append("name", name);
+  // El backend busca en el título y en el nombre de los artistas.
+  if (query) params.append("q", query);
   const response = await customFetch(`${BASE_URL}/songs?${params.toString()}`);
   return response ? await response.json() : null;
 };
 
+export const getArtists = async (
+  offset = 0,
+  limit = 20,
+  search?: string
+): Promise<GetArtistsResponse | null> => {
+  const params = new URLSearchParams({
+    offset: String(offset),
+    limit: String(limit),
+  });
+  if (search) params.append("search", search);
+  const response = await customFetch(`${BASE_URL}/artists?${params.toString()}`);
+  return response ? await response.json() : null;
+};
+
+export const renameArtist = async (id: string, name: string): Promise<void> => {
+  const response = await customFetch(`${BASE_URL}/artists/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  });
+  await throwIfFailed(response, "renombrar artista");
+};
+
 export const createSong = async (data: {
-  name: string;
+  title: string;
+  artists: string[];
   mp3: File;
   shown_zenn?: boolean;
   normalize?: boolean;
 }) => {
   const formData = new FormData();
-  formData.append("name", data.name);
+  formData.append("title", data.title);
+  // Como array JSON y no separados por comas: un artista puede llevarlas en
+  // el nombre y el backend no tiene forma de saber cuáles separan.
+  formData.append("artists", JSON.stringify(data.artists));
   formData.append("shown_zenn", data.shown_zenn ? "true" : "false");
   formData.append("normalize", data.normalize ? "true" : "false");
   formData.append("mp3", data.mp3);
@@ -106,14 +135,7 @@ export const createSong = async (data: {
     body: formData,
   });
 
-  if (!response) {
-    throw new Error("No se pudo conectar con el servidor.");
-  }
-  if (!response.ok) {
-    const errorData: ErrorResponse = await response?.json();
-    console.error("Error al crear canción:", errorData);
-    throw new Error(errorData?.message || "Error al crear canción");
-  }
+  await throwIfFailed(response, "crear canción");
 };
 
 export const deleteSong = async (id: string) => {
@@ -122,38 +144,22 @@ export const deleteSong = async (id: string) => {
     headers: { "Content-Type": "application/json" },
   });
 
-  if (!response) {
-    throw new Error("No se pudo conectar con el servidor.");
-  }
-  if (!response.ok) {
-    const errorData: ErrorResponse = await response?.json();
-    console.error("Error al eliminar canción:", errorData);
-    throw new Error(errorData?.message || "Error al eliminar canción");
-  }
+  await throwIfFailed(response, "eliminar canción");
 };
 
 export const updateSong = async (
   id: string,
-  newName: string,
+  title: string,
+  artists: string[],
   shown_zenn: boolean
 ) => {
   const response = await customFetch(`${BASE_URL}/songs/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: newName,
-      shown_zenn: shown_zenn,
-    }),
+    body: JSON.stringify({ title, artists, shown_zenn }),
   });
 
-  if (!response) {
-    throw new Error("No se pudo conectar con el servidor.");
-  }
-  if (!response.ok) {
-    const errorData: ErrorResponse = await response?.json();
-    console.error("Error al actualizar canción:", errorData);
-    throw new Error(errorData?.message || "Error al actualizar canción");
-  }
+  await throwIfFailed(response, "actualizar canción");
 };
 
 export const getUsers = async (
@@ -181,14 +187,7 @@ export const createUser = async (data: {
     body: JSON.stringify(data),
   });
 
-  if (!response) {
-    throw new Error("No se pudo conectar con el servidor.");
-  }
-  if (!response.ok) {
-    const errorData: ErrorResponse = await response?.json();
-    console.log("Error al crear usuario:", errorData);
-    throw new Error(errorData.message);
-  }
+  await throwIfFailed(response, "crear usuario");
 };
 
 export const updateUserPassword = async (
@@ -202,14 +201,7 @@ export const updateUserPassword = async (
       new_password: newPassword,
     }),
   });
-  if (!response) {
-    throw new Error("No se pudo conectar con el servidor.");
-  }
-  if (!response.ok) {
-    const errorData: ErrorResponse = await response?.json();
-    console.error("Error al actualizar contraseña:", errorData);
-    throw new Error(errorData?.message || "Error al actualizar contraseña");
-  }
+  await throwIfFailed(response, "actualizar contraseña");
 };
 
 export const deleteUser = async (id: string): Promise<void> => {
@@ -218,14 +210,7 @@ export const deleteUser = async (id: string): Promise<void> => {
     headers: { "Content-Type": "application/json" },
   });
 
-  if (!response) {
-    throw new Error("No se pudo conectar con el servidor.");
-  }
-  if (!response.ok) {
-    const errorData: ErrorResponse = await response?.json();
-    console.error("Error al eliminar usuario:", errorData);
-    throw new Error(errorData?.message || "Error al eliminar usuario");
-  }
+  await throwIfFailed(response, "eliminar usuario");
 };
 
 export const getSuggestions = async (
@@ -259,13 +244,21 @@ export const deleteSuggestion = async (id: string): Promise<void> => {
     method: "DELETE",
   });
 
+  await throwIfFailed(response, "eliminar sugerencia");
+};
+
+/**
+ * Traduce la respuesta de una mutación a excepción. Cada endpoint repetía este
+ * mismo bloque, con el texto de la acción como única diferencia.
+ */
+const throwIfFailed = async (response: Response | null, accion: string) => {
   if (!response) {
     throw new Error("No se pudo conectar con el servidor.");
   }
   if (!response.ok) {
-    const errorData: ErrorResponse = await response?.json();
-    console.error("Error al eliminar sugerencia:", errorData);
-    throw new Error(errorData?.message || "Error al eliminar sugerencia");
+    const errorData: ErrorResponse = await response.json();
+    console.error(`Error al ${accion}:`, errorData);
+    throw new Error(errorData?.message || `Error al ${accion}`);
   }
 };
 

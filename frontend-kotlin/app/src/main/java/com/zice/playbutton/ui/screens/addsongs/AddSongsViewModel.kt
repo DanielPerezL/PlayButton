@@ -40,12 +40,15 @@ class AddSongsViewModel @Inject constructor(
 
     companion object {
         /**
-         * Consulta con la que se abre la pantalla. Un espacio casa con
-         * cualquier nombre en formato "Artista - Título", así que el listado
-         * llega ya lleno con lo más reciente del catálogo en lugar de con un
-         * cartel de "empieza a buscar".
+         * Consulta con la que se abre la pantalla: sin término, para que el
+         * listado llegue ya lleno con lo más reciente del catálogo en lugar de
+         * con un cartel de "empieza a buscar".
+         *
+         * Antes esto era un espacio, que casaba con cualquier nombre en
+         * formato "Artista - Título". Ya no hay tal formato, y el backend
+         * devuelve la biblioteca entera cuando no se le pasa término.
          */
-        const val INITIAL_QUERY = " "
+        const val INITIAL_QUERY = ""
     }
 
     val playlistId: Int = savedStateHandle.toRoute<AddSongsRoute>().playlistId

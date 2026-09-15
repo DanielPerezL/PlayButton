@@ -28,7 +28,7 @@ object MediaItems {
             MediaMetadata.Builder()
                 .setTitle(song.title)
                 .setArtist(song.artist)
-                .setDisplayTitle(song.name)
+                .setDisplayTitle(song.fullName)
                 .setArtworkUri(artworkUri)
                 .setIsBrowsable(false)
                 .setIsPlayable(true)

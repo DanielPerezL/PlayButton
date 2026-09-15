@@ -71,12 +71,20 @@ data class PlaylistDetailUiState(
     val isSaving: Boolean = false,
     val storage: PlaylistStorageState = PlaylistStorageState(),
 ) {
-    /** El filtro es local: la lista de canciones ya está entera en memoria. */
+    /**
+     * El filtro es local: la lista de canciones ya está entera en memoria.
+     * Mira en el título y en los artistas, igual que la búsqueda del servidor;
+     * antes bastaba con una comparación porque ambos iban en la misma cadena.
+     */
     val visibleSongs: List<Song>
         get() = if (filter.isBlank()) {
             songs
         } else {
-            songs.filter { it.name.contains(filter.trim(), ignoreCase = true) }
+            val term = filter.trim()
+            songs.filter { song ->
+                song.title.contains(term, ignoreCase = true) ||
+                    song.artists.any { it.contains(term, ignoreCase = true) }
+            }
         }
 }
 

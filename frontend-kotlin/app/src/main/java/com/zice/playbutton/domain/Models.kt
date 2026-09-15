@@ -1,30 +1,28 @@
 package com.zice.playbutton.domain
 
+import com.zice.playbutton.data.remote.dto.ArtistSummaryDto
 import com.zice.playbutton.data.remote.dto.PlaylistDto
 import com.zice.playbutton.data.remote.dto.SongDto
 
 /**
- * El backend guarda el nombre de la canción como una sola cadena con el
- * formato "Artista - Título". El separador " - " es el contrato semántico de
- * todo el producto (también lo usa el backend para generar las playlists de
- * artista), así que la app lo parte una vez aquí en lugar de repetirlo en
- * cada pantalla.
+ * Título y artistas vienen ya separados del backend. Antes viajaban juntos en
+ * una sola cadena con el formato "Artista - Título" que la app tenía que
+ * partir, con lo que un artista no era más que un trozo de texto.
+ *
+ * Del artista solo se queda el nombre: la app no navega a un artista (para eso
+ * está su playlist, que es lo que abre la pestaña Artistas), así que su id no
+ * lo usa nadie y guardarlo obligaría a inventárselo al releer la caché.
  */
 data class Song(
     val id: Int,
-    val name: String,
+    val title: String,
+    val artists: List<String> = emptyList(),
 ) {
-    private val parts: Pair<String?, String> by lazy {
-        val index = name.indexOf(" - ")
-        if (index > 0) {
-            name.substring(0, index) to name.substring(index + 3)
-        } else {
-            null to name
-        }
-    }
+    /** Los artistas tal y como se muestran en una línea. */
+    val artist: String? get() = artists.joinToString(", ").ifEmpty { null }
 
-    val artist: String? get() = parts.first
-    val title: String get() = parts.second
+    /** Título y artistas juntos, para donde solo cabe una línea. */
+    val fullName: String get() = artist?.let { "$it - $title" } ?: title
 }
 
 data class Playlist(
@@ -50,7 +48,26 @@ data class DownloadedPlaylist(
     val songCount: Int,
 )
 
-fun SongDto.toDomain() = Song(id = id, name = name)
+fun SongDto.toDomain() = Song(
+    id = id,
+    title = title,
+    artists = artists.map { it.name },
+)
+
+/**
+ * El artista se presenta como la playlist que lo contiene, que es lo que se
+ * abre al tocarlo y lo que la app ya sabe pintar y marcar como favorita.
+ */
+fun ArtistSummaryDto.toDomain() = Playlist(
+    id = playlistId ?: 0,
+    name = name,
+    ownerName = "Sistema",
+    ownerId = 1,
+    isPublic = true,
+    isArtist = true,
+    favoritesCount = favoritesCount,
+    isFavorite = isFavorite,
+)
 
 fun PlaylistDto.toDomain() = Playlist(
     id = id,

@@ -1,12 +1,12 @@
 from flask import request, jsonify, make_response
 from config import app
-from services import PlaylistsService
+from services import PlaylistsService, ArtistsService
 from exceptions import *
 from flask_jwt_extended import (
                                 jwt_required, 
                                 get_jwt, 
                                 )
-from utils import get_user_from_token, has_permission
+from utils import get_user_from_token, has_permission, check_is_admin
 from models import Playlist
 
 
@@ -29,20 +29,33 @@ def get_all_playlists():
 
 @app.route('/api/artists', methods=['GET'])
 @jwt_required()
-def get_all_artists_playlists():
+def get_all_artists():
     client = get_user_from_token(get_jwt())
     offset = request.args.get('offset', 0, type=int)
     limit = request.args.get('limit', 20, type=int)
     search = request.args.get('search', '', type=str)
 
-    playlists_data = PlaylistsService.get_all_artists_playlists(
+    artists_data = ArtistsService.get_all(
         offset=offset,
         limit=limit,
         search=search,
         current_user_id=client.id
     )
-    
-    return jsonify(playlists_data), 200
+
+    return jsonify(artists_data), 200
+
+
+@app.route('/api/artists/<int:artist_id>', methods=['PATCH'])
+@jwt_required()
+def rename_artist(artist_id):
+    check_is_admin()
+
+    data = request.get_json()
+    new_name = data.get('name') if data else None
+    if not new_name:
+        raise BadRequestException("Falta el nuevo nombre del artista")
+
+    return jsonify(ArtistsService.rename(artist_id, new_name)), 200
 
 @app.route('/api/playlists/<int:playlist_id>', methods=['DELETE'])
 @jwt_required()

@@ -1,5 +1,6 @@
 package com.zice.playbutton.data.remote
 
+import com.zice.playbutton.data.remote.dto.ArtistPageDto
 import com.zice.playbutton.data.remote.dto.ChangePasswordRequest
 import com.zice.playbutton.data.remote.dto.FavoriteCountDto
 import com.zice.playbutton.data.remote.dto.LoginRequest
@@ -33,15 +34,17 @@ interface ApiService {
     // --- Canciones -------------------------------------------------------
 
     /**
-     * Con `name` el backend busca por coincidencia parcial y pagina por id
-     * descendente. Sin `name` devuelve una seleccion aleatoria de canciones
-     * marcadas como visibles e **ignora el offset**: ese es el Modo Zen.
+     * Busca por coincidencia parcial en el titulo y en el nombre de los
+     * artistas, paginando por id descendente. Con `random` devuelve en su
+     * lugar una seleccion aleatoria de las canciones marcadas como visibles e
+     * **ignora el offset**: ese es el Modo Zen.
      */
     @GET("songs")
     suspend fun searchSongs(
-        @Query("name") name: String? = null,
+        @Query("q") query: String? = null,
         @Query("offset") offset: Int = 0,
         @Query("limit") limit: Int = 50,
+        @Query("random") random: Boolean = false,
     ): SongPageDto
 
     @GET("songs/{id}/signed-url")
@@ -61,7 +64,7 @@ interface ApiService {
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
         @Query("search") search: String,
-    ): PlaylistPageDto
+    ): ArtistPageDto
 
     @GET("users/{userId}/playlists")
     suspend fun getUserPlaylists(

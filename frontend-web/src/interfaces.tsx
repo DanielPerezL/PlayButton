@@ -20,14 +20,33 @@ export interface GetUsersResponse {
   has_more: boolean;
 }
 
-export interface Song {
+export interface Artist {
   id: string;
   name: string;
+}
+
+export interface Song {
+  id: string;
+  title: string;
+  artists: Artist[];
   shown_zenn: boolean;
 }
 
 export interface GetSongsResponse {
   songs: Song[];
+  has_more: boolean;
+}
+
+/** Artista del listado: trae con qué playlist se abre y cuánto tiene dentro. */
+export interface ArtistSummary extends Artist {
+  playlist_id: string | null;
+  songs_count: number;
+  favorites_count: number;
+  is_favorite: boolean;
+}
+
+export interface GetArtistsResponse {
+  artists: ArtistSummary[];
   has_more: boolean;
 }
 

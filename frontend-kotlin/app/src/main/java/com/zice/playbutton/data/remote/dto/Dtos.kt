@@ -17,9 +17,10 @@ data class LoginResponse(
 )
 
 /**
- * El backend no tiene modelo de artista: un artista es una playlist con
- * `is_artist_playlist = true`, generada automaticamente a partir del nombre
- * de las canciones y propiedad del administrador. Por eso comparten DTO.
+ * Las playlists de artista se siguen generando solas y son propiedad del
+ * administrador, pero ya no se distinguen por el nombre de las canciones: el
+ * backend las cuelga del maestro de artistas. `is_artist_playlist` lo deduce
+ * de ahi y sigue viniendo igual.
  */
 @Serializable
 data class PlaylistDto(
@@ -39,11 +40,38 @@ data class PlaylistPageDto(
     @SerialName("has_more") val hasMore: Boolean = false,
 )
 
-/** El nombre viene en formato "Artista - Titulo"; la app lo parte para mostrarlo. */
+@Serializable
+data class ArtistDto(
+    val id: Int,
+    val name: String,
+)
+
 @Serializable
 data class SongDto(
     val id: Int,
+    val title: String,
+    val artists: List<ArtistDto> = emptyList(),
+)
+
+/**
+ * Artista del maestro. Lo que se abre para ver sus canciones sigue siendo una
+ * playlist, y por eso viene con su id: asi la pestana de artistas no tiene que
+ * cruzar dos listados.
+ */
+@Serializable
+data class ArtistSummaryDto(
+    val id: Int,
     val name: String,
+    @SerialName("playlist_id") val playlistId: Int? = null,
+    @SerialName("songs_count") val songsCount: Int = 0,
+    @SerialName("favorites_count") val favoritesCount: Int = 0,
+    @SerialName("is_favorite") val isFavorite: Boolean = false,
+)
+
+@Serializable
+data class ArtistPageDto(
+    val artists: List<ArtistSummaryDto> = emptyList(),
+    @SerialName("has_more") val hasMore: Boolean = false,
 )
 
 @Serializable

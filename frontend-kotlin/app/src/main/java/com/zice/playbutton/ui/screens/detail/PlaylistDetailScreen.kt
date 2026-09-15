@@ -384,7 +384,7 @@ fun PlaylistDetailScreen(
     songToRemove?.let { song ->
         ConfirmDialog(
             title = stringResource(R.string.song_remove),
-            message = stringResource(R.string.song_remove_confirm, song.name),
+            message = stringResource(R.string.song_remove_confirm, song.fullName),
             confirmText = stringResource(R.string.delete),
             destructive = true,
             onConfirm = {

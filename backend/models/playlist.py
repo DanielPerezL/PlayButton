@@ -18,7 +18,16 @@ class Playlist(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     is_public = db.Column(db.Boolean, default=True)
-    is_artist_playlist = db.Column(db.Boolean, default=False)
+
+    # Las playlists de artista se distinguian por una bandera y se cruzaban con
+    # el artista por nombre. Ahora lo apuntan: la bandera se deduce de aqui, y
+    # renombrar un artista deja de romper el vinculo.
+    # Unico: cada artista tiene como mucho una playlist, que es lo que da por
+    # supuesto el uselist=False del backref. En MySQL varios NULL no chocan,
+    # asi que las playlists normales no se estorban.
+    artist_id = db.Column(db.Integer, db.ForeignKey('artist.id', ondelete='CASCADE'),
+                          nullable=True, unique=True)
+    artist = db.relationship('Artist', backref=db.backref('playlist', uselist=False))
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     user = db.relationship('User', backref=db.backref('playlists', lazy=True, cascade='all, delete-orphan'))
@@ -37,11 +46,15 @@ class Playlist(db.Model):
         backref=db.backref('favorite_playlists', lazy='dynamic')
     )
 
-    def __init__(self, name, user, is_public=True, is_artist_playlist=False):
+    def __init__(self, name, user, is_public=True, artist=None):
         self.name = name
         self.user = user
         self.is_public = is_public
-        self.is_artist_playlist = is_artist_playlist
+        self.artist = artist
+
+    @property
+    def is_artist_playlist(self):
+        return self.artist_id is not None
 
     def to_dto(self, current_user_id=None):
         return {

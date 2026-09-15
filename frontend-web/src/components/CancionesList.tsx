@@ -1,6 +1,7 @@
 import { SearchIcon, CloseIcon } from "./icons/Icons";
 import React, { useEffect, useState } from "react";
 import { getSongs, deleteSong } from "../services/apiService";
+import { formatArtists } from "../services/songName";
 import { Song, GetSongsResponse } from "../interfaces";
 import AddSongModal from "./AddSongModal";
 import EditSongModal from "./EditSongModal";
@@ -53,7 +54,7 @@ const CancionesList: React.FC = () => {
 
   const handleDelete = async (song: Song) => {
     await deleteSong(song.id);
-    toast.success(`Canción '${song.name}' eliminada correctamente`);
+    toast.success(`Canción '${song.title}' eliminada correctamente`);
     fetchSongs(true);
   };
 
@@ -78,7 +79,7 @@ const CancionesList: React.FC = () => {
           <input
             type="text"
             className="form-control border-start-0"
-            placeholder="Buscar canciones..."
+            placeholder="Buscar por título o artista..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={(e) => {
@@ -129,7 +130,10 @@ const CancionesList: React.FC = () => {
                 <div className="card shadow-sm h-100">
                   <div className="card-body d-flex flex-column justify-content-between">
                     <div>
-                      <h5 className="card-title">{song.name}</h5>
+                      <h5 className="card-title mb-1">{song.title}</h5>
+                      <p className="card-text text-body-secondary mb-2">
+                        {formatArtists(song.artists) || "Sin artista"}
+                      </p>
                       <p className="card-text">
                         Mostrada en Zenn:{" "}
                         <strong>{song.shown_zenn ? "Sí" : "No"}</strong>
@@ -150,7 +154,7 @@ const CancionesList: React.FC = () => {
                         className="btn btn-danger btn-sm flex-grow-1"
                         onConfirm={() => handleDelete(song)}
                         title="Eliminar Canción"
-                        message={`¿Estás seguro de que quieres eliminar la canción '${song.name}'?`}
+                        message={`¿Estás seguro de que quieres eliminar la canción '${song.title}'?`}
                       >
                         Eliminar
                       </NeedConfirmButton>

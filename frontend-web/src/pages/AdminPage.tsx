@@ -5,13 +5,14 @@ import { authEvents } from "../events/authEvents";
 import { toast } from "react-toastify";
 import UsuariosList from "../components/UsuariosList";
 import CancionesList from "../components/CancionesList";
+import ArtistasList from "../components/ArtistasList";
 import SugerenciasList from "../components/SugerenciasList";
 import NeedConfirmButton from "../components/NeedConfirmButton";
 import { useNavigate } from "react-router-dom";
 import UserPage from "./UserPage";
 import icon from "../assets/icon.png";
 
-type Entity = "usuarios" | "canciones" | "sugerencias";
+type Entity = "usuarios" | "canciones" | "artistas" | "sugerencias";
 
 const AdminPage: React.FC = () => {
   const navigate = useNavigate();
@@ -86,7 +87,7 @@ const AdminPage: React.FC = () => {
       {/* Selector de entidad */}
       <div className="mb-4" role="tablist" aria-label="Entidad a gestionar">
         <div className="pb-tabs">
-          {(["usuarios", "canciones", "sugerencias"] as Entity[]).map(
+          {(["usuarios", "canciones", "artistas", "sugerencias"] as Entity[]).map(
             (entity) => (
               <button
                 key={entity}
@@ -107,6 +108,7 @@ const AdminPage: React.FC = () => {
       <section className="pb-panel">
         {selectedEntity === "usuarios" && <UsuariosList />}
         {selectedEntity === "canciones" && <CancionesList />}
+        {selectedEntity === "artistas" && <ArtistasList />}
         {selectedEntity === "sugerencias" && <SugerenciasList />}
       </section>
     </div>

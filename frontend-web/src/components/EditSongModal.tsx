@@ -1,6 +1,8 @@
 // EditSongModal.tsx
 import React, { useState, useEffect } from "react";
 import { updateSong } from "../services/apiService";
+import { formatArtists, parseArtists } from "../services/songName";
+import ArtistsField from "./ArtistsField";
 import { toast } from "react-toastify";
 import { Song } from "../interfaces";
 import HelpPopover from "./HelpPopover";
@@ -20,17 +22,15 @@ const EditSongModal: React.FC<EditSongModalProps> = ({
   song,
   onSongUpdated,
 }) => {
-  const [artist, setArtist] = useState("");
+  const [artists, setArtists] = useState("");
   const [title, setTitle] = useState("");
   const [shownZenn, setShownZenn] = useState(true);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (song) {
-      // Suponiendo que el `name` en backend viene con el formato "Artista - Canción"
-      const [parsedArtist, parsedTitle] = song.name.split(" - ");
-      setArtist(parsedArtist || "");
-      setTitle(parsedTitle || "");
+      setArtists(formatArtists(song.artists));
+      setTitle(song.title);
       setShownZenn(song.shown_zenn);
     }
   }, [song]);
@@ -38,25 +38,10 @@ const EditSongModal: React.FC<EditSongModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const fullName = `${artist.trim()} - ${title.trim()}`;
+    const artistNames = parseArtists(artists);
 
-    if (!artist.trim() || !title.trim()) {
+    if (!artistNames.length || !title.trim()) {
       toast.error("Debes completar artista y canción");
-      return;
-    }
-
-    const dashCount = (fullName.match(/ - /g) || []).length;
-
-    if (
-      dashCount > 1 ||
-      artist.includes(" - ") ||
-      title.includes(" - ") ||
-      artist.startsWith("- ") ||
-      title.startsWith("- ") ||
-      artist.endsWith(" -") ||
-      title.endsWith(" -")
-    ) {
-      toast.error("El uso de la cadena ' - ' no está permitido.");
       return;
     }
 
@@ -64,8 +49,8 @@ const EditSongModal: React.FC<EditSongModalProps> = ({
 
     setLoading(true);
     try {
-      await updateSong(song.id, fullName, shownZenn);
-      toast.success(`Canción '${fullName}' actualizada correctamente`);
+      await updateSong(song.id, title.trim(), artistNames, shownZenn);
+      toast.success(`Canción '${title.trim()}' actualizada correctamente`);
       onSongUpdated();
       onClose();
     } catch (err: any) {
@@ -98,16 +83,7 @@ const EditSongModal: React.FC<EditSongModalProps> = ({
                 ></button>
               </div>
               <div className="modal-body">
-                <div className="mb-3">
-                  <label className="form-label">Artista</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={artist}
-                    onChange={(e) => setArtist(e.target.value)}
-                    required
-                  />
-                </div>
+                <ArtistsField value={artists} onChange={setArtists} />
                 <div className="mb-3">
                   <label className="form-label">Canción</label>
                   <input

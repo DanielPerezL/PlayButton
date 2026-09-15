@@ -3,7 +3,6 @@ package com.zice.playbutton.data.repo
 import com.zice.playbutton.data.local.SessionProvider
 import com.zice.playbutton.data.remote.ApiService
 import com.zice.playbutton.data.remote.dto.PlaylistBodyRequest
-import com.zice.playbutton.data.remote.dto.PlaylistPageDto
 import com.zice.playbutton.domain.Playlist
 import com.zice.playbutton.domain.PlaylistSource
 import com.zice.playbutton.domain.toDomain
@@ -94,9 +93,9 @@ class PlaylistRepository @Inject constructor(
 
             val page = fetchPage(key, offset = 0)
             cache.value += key to CachedList(
-                items = page.playlists.map { it.toDomain() },
+                items = page.items,
                 hasMore = page.hasMore,
-                nextOffset = page.playlists.size,
+                nextOffset = page.items.size,
                 loadedAt = System.currentTimeMillis(),
             )
             dirty.value -= key
@@ -112,30 +111,32 @@ class PlaylistRepository @Inject constructor(
             if (!current.hasMore) return@withKeyLock
 
             val page = fetchPage(key, offset = current.nextOffset)
-            val newItems = page.playlists.map { it.toDomain() }
             // El backend ordena por número de favoritos, que puede cambiar entre
             // páginas: descartamos los que ya tengamos para no duplicar filas.
             val knownIds = current.items.mapTo(HashSet()) { it.id }
             cache.value += key to current.copy(
-                items = current.items + newItems.filter { it.id !in knownIds },
+                items = current.items + page.items.filter { it.id !in knownIds },
                 hasMore = page.hasMore,
-                nextOffset = current.nextOffset + page.playlists.size,
+                nextOffset = current.nextOffset + page.items.size,
             )
         }
     }
 
     suspend fun refresh(key: ListKey) = ensureLoaded(key, force = true)
 
-    private suspend fun fetchPage(key: ListKey, offset: Int): PlaylistPageDto {
+    /** Una página ya en dominio: los artistas llegan con su propio DTO. */
+    private data class Page(val items: List<Playlist>, val hasMore: Boolean)
+
+    private suspend fun fetchPage(key: ListKey, offset: Int): Page {
         val search = key.search
-        return when (key.source) {
+        if (key.source == PlaylistSource.Artists) {
+            val page = api.getArtists(offset, PAGE_SIZE, search)
+            return Page(page.artists.map { it.toDomain() }, page.hasMore)
+        }
+
+        val page = when (key.source) {
             PlaylistSource.Public -> api.getPublicPlaylists(offset, PAGE_SIZE, search)
-            PlaylistSource.Artists -> api.getArtists(offset, PAGE_SIZE, search)
-            PlaylistSource.Mine -> {
-                val userId = key.userId ?: requireUserId()
-                api.getUserPlaylists(userId, offset, PAGE_SIZE, search)
-            }
-            PlaylistSource.OtherUser -> {
+            PlaylistSource.Mine, PlaylistSource.OtherUser -> {
                 val userId = key.userId ?: requireUserId()
                 api.getUserPlaylists(userId, offset, PAGE_SIZE, search)
             }
@@ -143,7 +144,9 @@ class PlaylistRepository @Inject constructor(
                 val userId = key.userId ?: requireUserId()
                 api.getUserFavorites(userId, offset, PAGE_SIZE, search)
             }
+            PlaylistSource.Artists -> error("Resuelto arriba")
         }
+        return Page(page.playlists.map { it.toDomain() }, page.hasMore)
     }
 
     private suspend fun requireUserId(): Int =

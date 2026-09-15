@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.zice.playbutton.data.local.db.PlayButtonDatabase
 import com.zice.playbutton.data.local.db.DownloadedPlaylistDao
+import com.zice.playbutton.data.local.db.MIGRATION_2_3
 import com.zice.playbutton.data.local.db.SongCacheDao
 import dagger.Module
 import dagger.Provides
@@ -20,7 +21,11 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): PlayButtonDatabase =
         Room.databaseBuilder(context, PlayButtonDatabase::class.java, "playbutton.db")
-            // Es solo caché: ante un cambio de esquema se puede rehacer desde la red.
+            .addMigrations(MIGRATION_2_3)
+            // Último recurso para un cambio de esquema sin migración escrita. No
+            // es gratis: `downloaded_playlists` no se puede rehacer desde la red,
+            // es lo único que dice qué audio hay guardado y a qué playlist
+            // pertenece. Los cambios que la toquen llevan su migración.
             .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
 

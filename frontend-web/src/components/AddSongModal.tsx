@@ -1,6 +1,8 @@
 // AddSongModal.tsx
 import React, { useEffect, useState } from "react";
 import { createSong } from "../services/apiService";
+import { parseArtists } from "../services/songName";
+import ArtistsField from "./ArtistsField";
 import { toast } from "react-toastify";
 import { Popover } from "bootstrap";
 import HelpPopover from "./HelpPopover";
@@ -18,8 +20,8 @@ const AddSongModal: React.FC<AddSongModalProps> = ({
   onClose,
   onSongAdded,
 }) => {
-  const [artist, setArtist] = useState("");
-  const [song, setSong] = useState("");
+  const [artists, setArtists] = useState("");
+  const [title, setTitle] = useState("");
   const [mp3File, setMp3File] = useState<File | null>(null);
   const [shownZenn, setShownZenn] = useState(true);
   const [normalize, setNormalize] = useState(true);
@@ -34,10 +36,11 @@ const AddSongModal: React.FC<AddSongModalProps> = ({
   }, []);
 
   const setDefaults = () => {
-    setArtist("");
-    setSong("");
+    setArtists("");
+    setTitle("");
     setMp3File(null);
     setShownZenn(true);
+    setNormalize(true);
     setHasCopyrightConsent(false);
   };
 
@@ -58,27 +61,22 @@ const AddSongModal: React.FC<AddSongModalProps> = ({
       return;
     }
 
-    const fullName = `${artist.trim()} - ${song.trim()}`;
-    if (!artist || !song) {
+    const artistNames = parseArtists(artists);
+    if (!artistNames.length || !title.trim()) {
       toast.error("Debes completar artista y canción");
-      return;
-    }
-
-    const dashCount = (fullName.match(/ - /g) || []).length;
-    if (dashCount > 1) {
-      toast.error("El uso de la cadena ' - ' no está permitido.");
       return;
     }
 
     setLoading(true);
     try {
       await createSong({
-        name: fullName,
+        title: title.trim(),
+        artists: artistNames,
         mp3: mp3File,
         shown_zenn: shownZenn,
         normalize: normalize,
       });
-      toast.success(`Canción '${fullName}' creada correctamente`);
+      toast.success(`Canción '${title.trim()}' creada correctamente`);
       onSongAdded();
       setDefaults();
       onClose();
@@ -113,23 +111,14 @@ const AddSongModal: React.FC<AddSongModalProps> = ({
                 ></button>
               </div>
               <div className="modal-body">
-                <div className="mb-3">
-                  <label className="form-label">Artista</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={artist}
-                    onChange={(e) => setArtist(e.target.value)}
-                    required
-                  />
-                </div>
+                <ArtistsField value={artists} onChange={setArtists} />
                 <div className="mb-3">
                   <label className="form-label">Canción</label>
                   <input
                     type="text"
                     className="form-control"
-                    value={song}
-                    onChange={(e) => setSong(e.target.value)}
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
                     required
                   />
                 </div>

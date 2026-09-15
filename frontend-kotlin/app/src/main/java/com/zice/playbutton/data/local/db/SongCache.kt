@@ -8,6 +8,8 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.RoomDatabase
 import androidx.room.Transaction
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -23,9 +25,23 @@ import kotlinx.coroutines.flow.Flow
 data class CachedSongEntity(
     val playlistId: Int,
     val songId: Int,
-    val name: String,
+    val title: String,
+    /** Los artistas, unidos por [ARTIST_SEPARATOR]. Ver [joinArtists]. */
+    val artists: String,
     val position: Int,
 )
+
+/**
+ * Los artistas se guardan en una sola columna, y la coma no sirve de separador
+ * porque un artista puede llevarla en el nombre ("Tyler, The Creator"). Este
+ * carácter de control no aparece en un nombre escrito por nadie.
+ */
+private const val ARTIST_SEPARATOR = "\u001F"
+
+fun joinArtists(artists: List<String>): String = artists.joinToString(ARTIST_SEPARATOR)
+
+fun splitArtists(stored: String): List<String> =
+    if (stored.isEmpty()) emptyList() else stored.split(ARTIST_SEPARATOR)
 
 @Entity(tableName = "playlist_cache_meta")
 data class PlaylistCacheMetaEntity(
@@ -144,10 +160,58 @@ interface SongCacheDao {
         PlaylistCacheMetaEntity::class,
         DownloadedPlaylistEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 abstract class PlayButtonDatabase : RoomDatabase() {
     abstract fun songCacheDao(): SongCacheDao
     abstract fun downloadedPlaylistDao(): DownloadedPlaylistDao
+}
+
+/**
+ * El nombre de la cancion se parte en titulo y artistas, igual que ha hecho el
+ * backend con su propia migracion.
+ *
+ * Se migra en lugar de dejar que Room rehaga la base de datos porque aqui no
+ * todo es cache: `downloaded_playlists` es la unica lista de lo que esta
+ * descargado, y perderla deja el audio en el dispositivo sin nada que lo
+ * agrupe ni forma de reproducirlo sin conexion.
+ *
+ * SQLite no puede quitar una columna en las versiones que cubre minSdk 26, asi
+ * que la tabla se rehace. El reparto usa el mismo criterio que usaba la app:
+ * la primera aparicion de " - ". Los artistas se quedan en una sola entrada
+ * ("Queen, Bowie"), que es exactamente lo que se mostraba antes; la proxima
+ * vez que haya servidor, el listado los trae ya separados.
+ */
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS cached_songs_new (
+                playlistId INTEGER NOT NULL,
+                songId INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                artists TEXT NOT NULL,
+                position INTEGER NOT NULL,
+                PRIMARY KEY(playlistId, songId)
+            )
+            """.trimIndent(),
+        )
+        db.execSQL(
+            """
+            INSERT INTO cached_songs_new (playlistId, songId, title, artists, position)
+            SELECT playlistId, songId,
+                CASE WHEN instr(name, ' - ') > 1
+                     THEN substr(name, instr(name, ' - ') + 3)
+                     ELSE name END,
+                CASE WHEN instr(name, ' - ') > 1
+                     THEN substr(name, 1, instr(name, ' - ') - 1)
+                     ELSE '' END,
+                position
+            FROM cached_songs
+            """.trimIndent(),
+        )
+        db.execSQL("DROP TABLE cached_songs")
+        db.execSQL("ALTER TABLE cached_songs_new RENAME TO cached_songs")
+    }
 }

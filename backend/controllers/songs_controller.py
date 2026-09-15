@@ -5,6 +5,7 @@ from services import SongsService
 from exceptions import NotFoundException, UnauthorizedException
 import tempfile
 import base64
+import json
 from exceptions import MP3RecoveryException, BadRequestException, ConflictException
 from models import Song
 from flask_jwt_extended import (
@@ -18,21 +19,42 @@ from itsdangerous import BadSignature, SignatureExpired
 from urllib.parse import quote
 
 
+def artist_names_from(raw):
+    """
+    Normaliza la lista de artistas que manda el cliente. Viaja como array JSON
+    porque un artista puede llevar comas en el nombre ("Tyler, The Creator") y
+    partir una cadena por ellas se los inventaba.
+    """
+    if raw is None:
+        raise BadRequestException("Falta la lista de artistas")
+
+    if isinstance(raw, str):
+        try:
+            raw = json.loads(raw)
+        except ValueError:
+            raise BadRequestException("Lista de artistas malformada")
+
+    if not isinstance(raw, list) or any(not isinstance(name, str) for name in raw):
+        raise BadRequestException("Lista de artistas malformada")
+
+    return [name.strip() for name in raw if name.strip()]
+
+
 @app.route('/api/songs', methods=['POST'])
 @jwt_required()
 def create_song():
     check_is_admin()
 
-    # Verificar si 'mp3' está en los archivos y 'name' en el formulario
-    if 'mp3' not in request.files or 'name' not in request.form:
-        raise BadRequestException("Falta el archivo MP3 o el nombre de la canción")
-    
+    if 'mp3' not in request.files or 'title' not in request.form:
+        raise BadRequestException("Falta el archivo MP3 o el título de la canción")
+
     mp3_file = request.files['mp3']
-    name = request.form['name']
+    title = request.form['title']
+    artist_names = artist_names_from(request.form.get('artists'))
     shown_zenn = request.form.get('shown_zenn', 'true').lower() == 'true'
     normalize = request.form.get('normalize', 'true').lower() == 'true'
-    
-    id = SongsService.add_song(name, mp3_file, shown_zenn, normalize)    
+
+    id = SongsService.add_song(title, artist_names, mp3_file, shown_zenn, normalize)
     response = make_response()
     response.status_code = 201
 
@@ -77,12 +99,14 @@ def update_song(song_id):
     check_is_admin()
 
     data = request.get_json()
-    new_name = data.get("name")
+    new_title = data.get("title")
     new_zenn = data.get("shown_zenn")
-    if not new_name or new_zenn is None:
-        raise BadRequestException("Falta indicar el nuevo nombre")
+    if not new_title or new_zenn is None:
+        raise BadRequestException("Falta indicar el nuevo título")
 
-    SongsService.update_song(song_id, new_name, new_zenn)
+    artist_names = artist_names_from(data.get("artists"))
+
+    SongsService.update_song(song_id, new_title, artist_names, new_zenn)
     return '', 204
 
 @app.route('/api/songs', methods=['GET'])
@@ -90,11 +114,15 @@ def update_song(song_id):
 def get_all_songs():
     offset = request.args.get('offset', 0, type=int)
     limit = request.args.get('limit', 100, type=int)
-    name = request.args.get('name', None, type=str)
+    q = request.args.get('q', None, type=str)
     details = request.args.get('details', "false", type=str).lower() == 'true'
+    # El modo Zenn se pide de forma explícita. Antes se deducía de que no
+    # hubiera término de búsqueda, y listar la biblioteca entera obligaba a
+    # los clientes a inventarse uno que casara con todo.
+    random = request.args.get('random', "false", type=str).lower() == 'true'
 
     return jsonify(
-        SongsService.get_all(offset, limit, name, details)
+        SongsService.get_all(offset, limit, q, details, random)
     ), 200
 
 @app.route('/api/songs/<int:song_id>/signed-url', methods=['GET'])

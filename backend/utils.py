@@ -29,6 +29,30 @@ def get_user_admin():
 def has_more_results(query, offset, limit):
     return query.offset(offset + limit).first() is not None
 
+
+# FORMATO HISTORICO DEL NOMBRE DE CANCION
+# Artista y titulo viajaban juntos en una sola cadena. Ya no es contrato de la
+# API, pero la migracion de datos tiene que deshacerlo, asi que el parseo vive
+# aqui en lugar de repetirse suelto donde haga falta.
+ARTIST_TITLE_SEPARATOR = " - "
+
+
+def split_artist_title(name):
+    """
+    Parte "Artista1, Artista2 - Titulo" en (lista de artistas, titulo).
+
+    Corta por la PRIMERA aparicion del separador y deja todo lo demas como
+    titulo, para no perder nada en nombres que lo repitan ("Artista - Cancion
+    - En directo"). Sin separador no hay artista y el nombre entero es titulo.
+    """
+    index = name.find(ARTIST_TITLE_SEPARATOR)
+    if index <= 0:
+        return [], name.strip()
+
+    artists = [a.strip() for a in name[:index].split(",") if a.strip()]
+    return artists, name[index + len(ARTIST_TITLE_SEPARATOR):].strip()
+
+
 #MANEJO DE TOKENS
 # Version de credenciales que viaja dentro del token. Si no coincide con la
 # que tiene el usuario en base de datos, el token se emitio antes del ultimo

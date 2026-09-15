@@ -1,6 +1,8 @@
 package com.zice.playbutton.data.repo
 
 import com.zice.playbutton.data.local.db.CachedSongEntity
+import com.zice.playbutton.data.local.db.joinArtists
+import com.zice.playbutton.data.local.db.splitArtists
 import com.zice.playbutton.data.local.db.SongCacheDao
 import com.zice.playbutton.BuildConfig
 import com.zice.playbutton.data.remote.ApiService
@@ -56,25 +58,31 @@ class SongRepository @Inject constructor(
         songCacheDao.replace(
             playlistId = playlistId,
             songs = songs.mapIndexed { index, song ->
-                CachedSongEntity(playlistId, song.id, song.name, index)
+                CachedSongEntity(
+                    playlistId = playlistId,
+                    songId = song.id,
+                    title = song.title,
+                    artists = joinArtists(song.artists),
+                    position = index,
+                )
             },
         )
         return songs
     }
 
     private fun List<CachedSongEntity>.toSongs(): List<Song> =
-        map { Song(id = it.songId, name = it.name) }
+        map { Song(id = it.songId, title = it.title, artists = splitArtists(it.artists)) }
 
     suspend fun invalidatePlaylistSongs(playlistId: Int) = songCacheDao.invalidate(playlistId)
 
     /**
-     * Búsqueda por nombre. El backend hace coincidencia parcial y pagina
-     * ordenando por id descendente, así que las incorporaciones recientes
-     * salen primero.
+     * Búsqueda por título o artista. El backend hace coincidencia parcial y
+     * pagina ordenando por id descendente, así que las incorporaciones
+     * recientes salen primero. Sin término devuelve la biblioteca entera.
      */
     suspend fun searchSongs(query: String, offset: Int): SongPage {
         val page = api.searchSongs(
-            name = query.ifEmpty { null },
+            query = query.ifEmpty { null },
             offset = offset,
             limit = SEARCH_PAGE_SIZE,
         )
@@ -82,12 +90,11 @@ class SongRepository @Inject constructor(
     }
 
     /**
-     * Lote del Modo Zen. Sin parámetro `name` el backend devuelve una
-     * selección aleatoria de las canciones marcadas como visibles (e ignora el
-     * offset), que es justo lo que queremos aquí.
+     * Lote del Modo Zen: una selección aleatoria de las canciones marcadas
+     * como visibles. El backend ignora el offset en este modo.
      */
     suspend fun zenBatch(): List<Song> =
-        api.searchSongs(name = null, offset = 0, limit = ZEN_BATCH_SIZE)
+        api.searchSongs(query = null, offset = 0, limit = ZEN_BATCH_SIZE, random = true)
             .songs.map { it.toDomain() }
 
     suspend fun addSongToPlaylist(playlistId: Int, songId: Int): Boolean {

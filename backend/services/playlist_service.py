@@ -129,20 +129,14 @@ class PlaylistsService:
 
     @staticmethod
     def get_all_playlists(offset=0, limit=20, search="", current_user_id=None):
-        return PlaylistsService._get_all(offset, limit, search, current_user_id=current_user_id, only_artist=False)
-    
-    @staticmethod
-    def get_all_artists_playlists(offset=0, limit=20, search="", current_user_id=None):
-        return PlaylistsService._get_all(offset, limit, search, current_user_id=current_user_id, only_artist=True)
-    
-    @staticmethod
-    def _get_all(offset=0, limit=20, search="", current_user_id=None, only_artist=False):
         try:
-            query = Playlist.query.filter_by(is_public=True).filter_by(is_artist_playlist=only_artist)
-            
+            # Las de artista se sirven desde /api/artists, que ahora va contra
+            # el maestro; aqui solo salen las que ha hecho alguien a mano.
+            query = Playlist.query.filter_by(is_public=True).filter(Playlist.artist_id.is_(None))
+
             if search:
                 query = query.filter(Playlist.name.ilike(f"%{search}%"))
-                
+
             query = query.order_by(Playlist.favorites_count.desc(), Playlist.id)
             return PlaylistsService.get_playlists_paginated(query, offset, limit, current_user_id)
         except Exception:
