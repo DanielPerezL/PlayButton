@@ -107,7 +107,14 @@ fun PlaylistDetailScreen(
     var songToRemove by remember { mutableStateOf<Song?>(null) }
     var removeDownloadVisible by remember { mutableStateOf(false) }
 
-    Column(modifier = modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            // El mismo hueco que los listados dejan sobre su buscador. Solo
+            // arriba: abajo manda el contentPadding de la lista, que es quien
+            // cuenta el inset de la barra inferior.
+            .padding(start = 16.dp, end = 16.dp, top = 8.dp),
+    ) {
         // Cabecera
         Row(
             verticalAlignment = Alignment.CenterVertically,

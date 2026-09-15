@@ -5,6 +5,7 @@ import com.zice.playbutton.data.local.AudioUsage
 import com.zice.playbutton.data.local.db.DownloadedPlaylistDao
 import com.zice.playbutton.data.local.db.DownloadedPlaylistEntity
 import com.zice.playbutton.data.local.db.SongCacheDao
+import com.zice.playbutton.data.remote.ServerUrl
 import com.zice.playbutton.domain.DownloadedPlaylist
 import com.zice.playbutton.domain.Playlist
 import kotlinx.coroutines.Dispatchers
@@ -131,7 +132,9 @@ private fun DownloadedPlaylistEntity.toDomain() = DownloadedPlaylist(
     ownerName = ownerName,
     isArtist = isArtist,
     songCount = songCount,
-    imageUrl = imageUrl,
+    // Una playlist descargada no se vuelve a pedir al servidor, asi que su
+    // portada se queda con el esquema que tuviera al bajarla.
+    imageUrl = ServerUrl.enforceAppScheme(imageUrl),
 )
 
 /**

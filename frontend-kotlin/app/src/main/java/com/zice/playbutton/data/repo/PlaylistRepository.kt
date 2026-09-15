@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import com.zice.playbutton.data.local.SessionProvider
 import com.zice.playbutton.data.remote.ApiService
+import com.zice.playbutton.data.remote.ServerUrl
 import com.zice.playbutton.data.remote.dto.PlaylistBodyRequest
 import com.zice.playbutton.domain.Playlist
 import com.zice.playbutton.domain.PlaylistSource
@@ -212,8 +213,9 @@ class PlaylistRepository @Inject constructor(
             bytes.toRequestBody(mime.toMediaType()),
         )
 
-        val imageUrl = runCatching { api.setPlaylistImage(playlistId, part).imageUrl }
-            .getOrNull() ?: return false
+        val imageUrl = ServerUrl.enforceAppScheme(
+            runCatching { api.setPlaylistImage(playlistId, part).imageUrl }.getOrNull(),
+        ) ?: return false
 
         updateEverywhere(playlistId) { it.copy(imageUrl = imageUrl) }
         invalidateOwned()

@@ -4,7 +4,6 @@ import com.zice.playbutton.data.local.db.CachedSongEntity
 import com.zice.playbutton.data.local.db.joinArtists
 import com.zice.playbutton.data.local.db.splitArtists
 import com.zice.playbutton.data.local.db.SongCacheDao
-import com.zice.playbutton.BuildConfig
 import com.zice.playbutton.data.remote.ApiService
 import com.zice.playbutton.data.remote.ServerUrl
 import com.zice.playbutton.data.remote.dto.SuggestionRequest
@@ -77,7 +76,9 @@ class SongRepository @Inject constructor(
                 id = it.songId,
                 title = it.title,
                 artists = splitArtists(it.artists),
-                imageUrl = it.imageUrl,
+                // También al releer: las filas guardadas por una version
+                // anterior llevan el `http://` que devolvia el servidor.
+                imageUrl = ServerUrl.enforceAppScheme(it.imageUrl),
             )
         }
 
@@ -130,7 +131,7 @@ class SongRepository @Inject constructor(
      * `http://`, que en release ExoPlayer rechaza por tráfico en claro.
      */
     suspend fun signedUrl(songId: Int): String? =
-        api.getSignedUrl(songId).mp3Url?.let { ServerUrl.enforceScheme(it, BuildConfig.DEBUG) }
+        ServerUrl.enforceAppScheme(api.getSignedUrl(songId).mp3Url)
 
     suspend fun clearCache() = songCacheDao.clearAll()
 

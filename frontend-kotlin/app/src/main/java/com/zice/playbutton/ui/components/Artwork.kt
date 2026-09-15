@@ -46,16 +46,20 @@ fun Artwork(
             .border(1.dp, Brand500.copy(alpha = 0.28f), shape),
         contentAlignment = Alignment.Center,
     ) {
-        if (imageUrl == null) {
-            Icon(
-                imageVector = when (kind) {
-                    ArtworkKind.Artist -> Icons.Filled.Person
-                    ArtworkKind.Song -> Icons.Filled.MusicNote
-                },
-                contentDescription = null,
-                tint = Brand400,
-            )
-        } else {
+        // El icono se queda siempre debajo, no solo cuando falta la URL: es lo
+        // que se ve mientras la portada carga, y lo que queda si no llega a
+        // cargar. Antes un fallo de red dejaba el cuadro vacio, que no se
+        // distingue de una portada en blanco.
+        Icon(
+            imageVector = when (kind) {
+                ArtworkKind.Artist -> Icons.Filled.Person
+                ArtworkKind.Song -> Icons.Filled.MusicNote
+            },
+            contentDescription = null,
+            tint = Brand400,
+        )
+
+        if (imageUrl != null) {
             AsyncImage(
                 model = imageUrl,
                 contentDescription = null,

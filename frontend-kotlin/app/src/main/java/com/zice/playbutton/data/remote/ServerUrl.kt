@@ -1,5 +1,7 @@
 package com.zice.playbutton.data.remote
 
+import com.zice.playbutton.BuildConfig
+
 /**
  * Normaliza la URL que teclea el usuario, replicando las reglas de la app
  * React Native: en release se exige HTTPS (el backend se publica tras un tunel
@@ -43,6 +45,17 @@ object ServerUrl {
         } else {
             "https://" + url.removePrefix("http://")
         }
+
+    /**
+     * [enforceScheme] con la regla de esta variante, para las URL absolutas
+     * que llegan del servidor: MP3 firmados y portadas.
+     *
+     * Existe para que la regla tenga un solo nombre. Cuando cada sitio se
+     * acordaba de escribir `enforceScheme(url, BuildConfig.DEBUG)` por su
+     * cuenta, las portadas se añadieron sin él y en release quedaban en blanco.
+     */
+    fun enforceAppScheme(url: String?): String? =
+        url?.let { enforceScheme(it, BuildConfig.DEBUG) }
 
     /** Versión legible para mostrar en Configuración. */
     fun display(url: String?): String =

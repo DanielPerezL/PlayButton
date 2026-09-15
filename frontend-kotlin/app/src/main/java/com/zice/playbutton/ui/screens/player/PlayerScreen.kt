@@ -160,7 +160,10 @@ fun PlayerScreen(
         Spacer(Modifier.height(16.dp))
 
         // Carátula. Sin portada se queda el isotipo sobre un halo del color de
-        // marca, que es lo que había antes de que el backend las sirviera.
+        // marca, que es lo que había antes de que el backend las sirviera. El
+        // isotipo se queda también debajo de la portada: es lo que se ve
+        // mientras carga y lo que queda si no llega a cargar, en vez del halo
+        // vacío.
         Box(
             modifier = Modifier
                 .fillMaxWidth(artworkFraction)
@@ -176,14 +179,13 @@ fun PlayerScreen(
                 ),
             contentAlignment = Alignment.Center,
         ) {
-            val artworkUri = state.artworkUri
-            if (artworkUri == null) {
-                Image(
-                    painter = painterResource(R.drawable.default_artwork),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxWidth(0.55f),
-                )
-            } else {
+            Image(
+                painter = painterResource(R.drawable.default_artwork),
+                contentDescription = null,
+                modifier = Modifier.fillMaxWidth(0.55f),
+            )
+
+            state.artworkUri?.let { artworkUri ->
                 AsyncImage(
                     model = artworkUri,
                     contentDescription = null,

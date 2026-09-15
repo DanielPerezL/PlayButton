@@ -1,5 +1,6 @@
 package com.zice.playbutton.domain
 
+import com.zice.playbutton.data.remote.ServerUrl
 import com.zice.playbutton.data.remote.dto.ArtistSummaryDto
 import com.zice.playbutton.data.remote.dto.PlaylistDto
 import com.zice.playbutton.data.remote.dto.SongDto
@@ -55,7 +56,9 @@ fun SongDto.toDomain() = Song(
     id = id,
     title = title,
     artists = artists.map { it.name },
-    imageUrl = imageUrl,
+    // El esquema de la portada lo pone la app, no la respuesta: el backend la
+    // enlaza con `request.host_url` y tras el túnel eso sale como `http://`.
+    imageUrl = ServerUrl.enforceAppScheme(imageUrl),
 )
 
 /**
@@ -71,7 +74,7 @@ fun ArtistSummaryDto.toDomain() = Playlist(
     isArtist = true,
     favoritesCount = favoritesCount,
     isFavorite = isFavorite,
-    imageUrl = imageUrl,
+    imageUrl = ServerUrl.enforceAppScheme(imageUrl),
 )
 
 fun PlaylistDto.toDomain() = Playlist(
@@ -83,7 +86,7 @@ fun PlaylistDto.toDomain() = Playlist(
     isArtist = isArtistPlaylist,
     favoritesCount = favoritesCount,
     isFavorite = isFavorite,
-    imageUrl = imageUrl,
+    imageUrl = ServerUrl.enforceAppScheme(imageUrl),
 )
 
 /** Origen de un listado de playlists. Identifica también su caché. */
