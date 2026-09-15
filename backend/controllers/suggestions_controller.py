@@ -1,9 +1,9 @@
 from flask import request, jsonify
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt
 from config import app
 from services import SuggestionsService
 from exceptions import BadRequestException
-from utils import check_is_admin
+from utils import check_is_admin, get_user_from_token
 
 
 @app.route('/api/suggestions', methods=['POST'])
@@ -15,7 +15,9 @@ def create_suggestion():
     if not song_name:
         raise BadRequestException()
 
-    SuggestionsService.create_suggestion(song_name)
+    client = get_user_from_token(get_jwt())
+
+    SuggestionsService.create_suggestion(song_name, client)
     return '', 201
 
 

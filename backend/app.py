@@ -8,7 +8,7 @@ from controllers import (
 )
 from sqlalchemy import inspect, text
 from sqlalchemy.exc import SQLAlchemyError
-from models import User
+from models import User, Suggestion
 import os
 from exceptions import AppException
 from flask import request, jsonify, send_from_directory
@@ -32,9 +32,31 @@ def ensure_token_version_column():
     db.session.commit()
 
 
+def ensure_suggestion_created_at_column():
+    """
+    Mismo caso que la columna anterior: la tabla suggestion ya existe en los
+    despliegues antiguos, asi que create_all() no le anade created_at. Las
+    filas previas se quedan con la fecha de la migracion, que es lo mas
+    aproximado a "cuando se sugirio" que se puede reconstruir.
+    La tabla suggestion_user si la crea create_all() por ser nueva.
+    """
+    table = Suggestion.__tablename__
+    existing = {column["name"] for column in inspect(db.engine).get_columns(table)}
+    if "created_at" in existing:
+        return
+    db.session.execute(
+        text(
+            f"ALTER TABLE `{table}` ADD COLUMN created_at DATETIME NOT NULL "
+            "DEFAULT CURRENT_TIMESTAMP"
+        )
+    )
+    db.session.commit()
+
+
 with app.app_context():
     db.create_all()
     ensure_token_version_column()
+    ensure_suggestion_created_at_column()
     duplicates = User.query.filter(User.nickname == "admin", User.id != 1).all()
     for user in duplicates:
         try:

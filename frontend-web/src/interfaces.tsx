@@ -34,6 +34,9 @@ export interface GetSongsResponse {
 export interface Suggestion {
   id: string;
   song_name: string;
+  // Fecha de la primera vez que se sugirio la cancion, en UTC (ISO 8601).
+  created_at: string | null;
+  suggested_by: User[];
 }
 
 export interface GetSuggestionsResponse {

@@ -4,6 +4,7 @@ import NeedConfirmButton from "./NeedConfirmButton";
 import { deleteSuggestion, getSuggestions } from "../services/apiService";
 import { toast } from "react-toastify";
 import LoadingButton from "./LoadingButton";
+import { formatDateTime } from "../services/utils";
 
 const SugerenciasList: React.FC = () => {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -82,14 +83,35 @@ const SugerenciasList: React.FC = () => {
     <>
       <div className="list-group col-12 col-lg-6 mx-auto">
         {suggestions.map((s) => (
-          <div key={s.id} className="list-group-item d-flex align-items-center">
-            <span
-              className="flex-grow-1 text-truncate me-2"
-              style={{ minWidth: 0 }}
-              title={s.song_name} // opcional: tooltip con el nombre completo
-            >
-              {s.song_name}
-            </span>
+          <div key={s.id} className="list-group-item d-flex align-items-start">
+            <div className="flex-grow-1 me-2" style={{ minWidth: 0 }}>
+              <div
+                className="text-truncate"
+                title={s.song_name} // opcional: tooltip con el nombre completo
+              >
+                {s.song_name}
+              </div>
+
+              <div className="small text-muted mt-1">
+                Sugerida el {formatDateTime(s.created_at)}
+              </div>
+
+              {/* Las sugerencias repetidas se agrupan, asi que aqui salen
+                  todos los usuarios que han pedido la misma cancion. */}
+              <div className="d-flex flex-wrap gap-1 mt-1">
+                {s.suggested_by && s.suggested_by.length > 0 ? (
+                  s.suggested_by.map((u) => (
+                    <span key={u.id} className="badge text-bg-secondary">
+                      {u.nickname}
+                    </span>
+                  ))
+                ) : (
+                  <span className="small text-muted fst-italic">
+                    Sin usuarios registrados
+                  </span>
+                )}
+              </div>
+            </div>
 
             <NeedConfirmButton
               title="Confirmar eliminación"
