@@ -1,0 +1,129 @@
+// =============================================================================
+// Design tokens en runtime.
+//
+// Se importa DESPUÉS de bootstrap.scss. Emite las custom properties --pb-* que
+// consume el CSS propio, y aplica los parches necesarios sobre las --bs-* que
+// Bootstrap 5.3 no hace color-mode-aware.
+// =============================================================================
+
+// sass:color en lugar de las globales red()/green()/blue(), deprecadas en
+// Dart Sass y previstas para desaparecer en la 3.0.
+@use "sass:color";
+
+@import "palette";
+
+// Los tokens --pb-*-rgb existen para poder usar rgba(var(--token), alpha) en
+// CSS, que necesita el triplete suelto y no acepta un color hex.
+@function pb-rgb($c) {
+    @return "#{color.channel($c, 'red', $space: rgb)}, #{color.channel($c, 'green', $space: rgb)}, #{color.channel($c, 'blue', $space: rgb)}";
+}
+
+:root {
+    // -- Marca ---------------------------------------------------------------
+    --pb-brand-200: #{$pb-brand-200};
+    --pb-brand-300: #{$pb-brand-300};
+    --pb-brand-400: #{$pb-brand-400};
+    --pb-brand-500: #{$pb-brand-500};
+    --pb-brand-600: #{$pb-brand-600};
+    --pb-brand-700: #{$pb-brand-700};
+    --pb-brand-900: #{$pb-brand-900};
+    --pb-brand-gradient: #{$pb-brand-gradient};
+    --pb-brand-500-rgb: #{pb-rgb($pb-brand-500)};
+
+    // -- Superficies ---------------------------------------------------------
+    --pb-surface-0: #{$pb-surface-0};
+    --pb-surface-1: #{$pb-surface-1};
+    --pb-surface-2: #{$pb-surface-2};
+    --pb-surface-3: #{$pb-surface-3};
+    --pb-border: #{$pb-border};
+    --pb-border-strong: #{$pb-border-strong};
+
+    // -- Texto ---------------------------------------------------------------
+    --pb-text-1: #{$pb-text-1};
+    --pb-text-2: #{$pb-text-2};
+    --pb-text-3: #{$pb-text-3};
+
+    // -- Semánticos ----------------------------------------------------------
+    // Dos valores por rol: el relleno lleva texto blanco encima; el tono -text
+    // es el legible sobre fondo oscuro. Las utilidades .text-danger y compañía
+    // ya apuntan a estos tonos (ver el bloque [data-bs-theme] de abajo), pero
+    // el CSS propio necesita poder leerlos sueltos.
+    --pb-danger: #{$pb-danger};
+    --pb-danger-text: #{$pb-danger-text};
+    --pb-success: #{$pb-success};
+    --pb-success-text: #{$pb-success-text};
+    --pb-info: #{$pb-info};
+    --pb-info-text: #{$pb-info-text};
+    --pb-warning: #{$pb-warning};
+
+    // -- Elevación -----------------------------------------------------------
+    // En oscuro una sombra negra es casi invisible: la elevación se construye
+    // con opacidades altas MÁS un borde luminoso interior.
+    --pb-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    --pb-shadow-2: 0 8px 24px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    --pb-shadow-3: 0 20px 48px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    --pb-glow: 0 0 32px rgba(var(--pb-brand-500-rgb), 0.35);
+
+    // -- Tipografía ----------------------------------------------------------
+    // Bootstrap aplica $headings-font-family directamente a h1-h6 desde
+    // _reboot.scss, pero no la expone como custom property, así que el CSS
+    // propio necesita la suya para tipografiar cosas que no son titulares.
+    --pb-font-heading: "Outfit Variable", system-ui, sans-serif;
+
+    // -- Layout --------------------------------------------------------------
+    --pb-navbar-height: 4rem;
+    --pb-measure: 68ch; // medida de línea para páginas de documento
+}
+
+// .text-primary NO es color-mode-aware en Bootstrap 5.3: $theme-colors no tiene
+// variante dark. El violeta de marca (#B000F0) da solo 3,91:1 sobre el fondo
+// oscuro, y .text-primary se usa en casi todos los titulares de la app.
+//
+// .text-primary compila a `color: rgba(var(--bs-primary-rgb), var(--bs-text-opacity))`,
+// así que redefinir --bs-primary-rgb lo arregla de golpe. No afecta a
+// .btn-primary, que usa --bs-btn-bg y necesita el tono saturado para mantener
+// el contraste con el texto blanco.
+[data-bs-theme="dark"] {
+    --bs-primary-rgb: #{pb-rgb($pb-brand-400)};
+
+    // Los colores semánticos tienen el mismo problema: los valores de relleno
+    // son demasiado oscuros para leerse como texto sobre el fondo.
+    --bs-success-rgb: #{pb-rgb($pb-success-text)};
+    --bs-danger-rgb: #{pb-rgb($pb-danger-text)};
+    --bs-info-rgb: #{pb-rgb($pb-info-text)};
+}
+
+// Los .btn-outline-* arrastran el mismo problema, y es más grave porque afecta
+// al texto del propio botón: button-outline-variant() usa el color de relleno
+// como color de texto, y esos rellenos están calibrados para llevar blanco
+// encima, no para leerse sobre un fondo oscuro. Medido sobre --pb-surface-1:
+// secondary 1,78:1 · danger 3,43:1 · success 3,54:1 · info 3,85:1, todos por
+// debajo de AA.
+//
+// Se repinta solo el estado en reposo (texto y borde). El hover conserva el
+// relleno saturado con texto blanco, que sí cumple.
+[data-bs-theme="dark"] {
+    .btn-outline-primary {
+        --bs-btn-color: #{$pb-brand-400};
+        --bs-btn-border-color: #{$pb-brand-500};
+    }
+    .btn-outline-secondary {
+        --bs-btn-color: #{$pb-text-2};
+        --bs-btn-border-color: #{$pb-border-strong};
+    }
+    .btn-outline-danger {
+        --bs-btn-color: #{$pb-danger-text};
+        --bs-btn-border-color: #{$pb-danger};
+    }
+    .btn-outline-success {
+        --bs-btn-color: #{$pb-success-text};
+        --bs-btn-border-color: #{$pb-success};
+    }
+    .btn-outline-info {
+        --bs-btn-color: #{$pb-info-text};
+        --bs-btn-border-color: #{$pb-info};
+    }
+}

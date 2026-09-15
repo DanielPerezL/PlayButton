@@ -1,0 +1,15 @@
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+/app/build/
+
+# Credenciales de firma: nunca en el repositorio.
+/keystore.properties
+*.keystore
+*.jks

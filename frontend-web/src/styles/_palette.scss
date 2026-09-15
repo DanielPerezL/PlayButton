@@ -1,0 +1,59 @@
+// =============================================================================
+// Paleta PlayButton — única fuente de verdad de color.
+//
+// Solo declaraciones de variables Sass: este fichero no emite CSS. Lo importan
+// tanto _variables.scss (para configurar Bootstrap antes de compilarlo) como
+// _tokens.scss (para emitir las custom properties --pb-*), de modo que ambas
+// capas comparten literales en lugar de duplicarlos.
+//
+// Los colores de marca están muestreados del logo real (src/assets/logo.png):
+// degradado diagonal #E5B2F8 -> #C54BF2 -> #B000F0.
+// =============================================================================
+
+// -- Marca --------------------------------------------------------------------
+// Ratios de contraste calculados contra $pb-surface-0 (#0A0710).
+$pb-brand-200: #e5b2f8; // 11,47:1 — extremo claro del degradado
+$pb-brand-300: #c54bf2; //  5,39:1 — punto medio del degradado
+$pb-brand-400: #d08bf5; //  8,27:1 — TEXTO de acento y enlaces (AAA)
+$pb-brand-500: #b000f0; // color canónico de marca: wordmark, glows, bordes.
+//                         Como texto da 3,91:1 (falla AA): nunca usarlo así.
+$pb-brand-600: #9b00d4; // RELLENO del botón primario (blanco encima: 6,28:1)
+$pb-brand-700: #7a00a8; // hover/active del primario (blanco encima: 8,78:1)
+$pb-brand-900: #310042; // fondo de la navbar (blanco encima: 17,37:1)
+
+$pb-brand-gradient: linear-gradient(
+    135deg,
+    $pb-brand-200 0%,
+    $pb-brand-300 50%,
+    $pb-brand-500 100%
+);
+
+// -- Superficies --------------------------------------------------------------
+// Negro con tinte violeta en lugar de negro puro: evita que el acento "flote".
+// Los saltos son deliberadamente sutiles; en oscuro la jerarquía se transmite
+// más con borde y sombra que con luminancia.
+$pb-surface-0: #0a0710; // body
+$pb-surface-1: #120d19; // tarjetas, contenedores, modales
+$pb-surface-2: #1a1424; // inputs, filas de listado, hover de surface-1
+$pb-surface-3: #241c31; // hover de surface-2, estados activos
+
+$pb-border: #2e2440;
+$pb-border-strong: #45375c;
+
+// -- Texto --------------------------------------------------------------------
+$pb-text-1: #f2edf7; // 17,35:1 — titulares y texto principal
+$pb-text-2: #bdb3cc; //  9,98:1 — texto de cuerpo
+$pb-text-3: #8e85a0; //  5,72:1 — atenuado. Es el suelo de contraste: sobre
+//                                surface-3 baja a 4,68:1. No usar sobre nada
+//                                más claro que surface-3.
+
+// -- Semánticos ---------------------------------------------------------------
+// Cada rol tiene dos valores: un relleno que garantiza AA con texto blanco
+// encima, y un tono claro legible como texto sobre fondo oscuro.
+$pb-danger: #c42b3f; // blanco encima: 5,58:1
+$pb-danger-text: #ff6b7a; // 7,27:1 sobre surface-0
+$pb-success: #0f7a42; // blanco encima: 5,41:1
+$pb-success-text: #5be39b; // 12,28:1
+$pb-info: #1f7a8c; // blanco encima: 4,98:1
+$pb-info-text: #7bd8ff; // 12,48:1
+$pb-warning: #ffc107; // único con texto negro encima (12,88:1)

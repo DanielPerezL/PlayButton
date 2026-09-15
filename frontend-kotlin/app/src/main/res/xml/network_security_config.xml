@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  El servidor de PlayButton es autoalojado y la app exige HTTPS en release,
+  igual que la version React Native. En debug se permite texto claro para
+  poder apuntar a un backend local.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

@@ -1,0 +1,124 @@
+// =============================================================================
+// Overrides de variables Sass de Bootstrap.
+//
+// Se importa ANTES de bootstrap.scss: todas las variables de Bootstrap llevan
+// !default, así que lo que se fije aquí gana. Aquí va únicamente lo que
+// Bootstrap necesita en tiempo de compilación (generar $theme-colors, los mapas
+// de utilidades y los cálculos de color-contrast()). Todo lo demás vive en
+// _tokens.scss como custom properties.
+// =============================================================================
+
+@import "palette";
+
+// -- Tipografía ---------------------------------------------------------------
+$font-family-sans-serif: "Inter Variable", system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+// $headings-font-family es null por defecto; al fijarlo, _reboot.scss lo aplica
+// a h1-h6. Sustituye al `font-family` del `*` que había en el antiguo App.css.
+$headings-font-family: "Outfit Variable", #{$font-family-sans-serif};
+$headings-font-weight: 700;
+$headings-line-height: 1.15;
+$display-font-family: $headings-font-family;
+$display-font-weight: 700;
+
+$line-height-base: 1.65;
+$lead-font-weight: 400;
+
+// -- Colores de tema ----------------------------------------------------------
+// $primary alimenta .btn-primary a través de button-variant(), que elige el
+// color del texto con color-contrast(). Se usa brand-600 (no brand-500) para
+// garantizar 6,28:1 con blanco encima; brand-500 queda reservado como color de
+// marca en sitios donde no hay texto encima (wordmark, glows, bordes).
+$primary: $pb-brand-600;
+// El $secondary anterior (#6c00cc) era un segundo violeta que competía con el
+// primario. En un sistema oscuro el rol de "secondary" es superficie neutra.
+$secondary: $pb-border-strong;
+$success: $pb-success;
+$danger: $pb-danger;
+$info: $pb-info;
+$warning: $pb-warning;
+// $light y $dark se dejan como están a propósito: alimentan .btn-light y
+// .btn-dark, y no son color-mode-aware. El markup no usa .bg-light/.bg-dark
+// (se migró a las utilidades -body-* que sí responden al modo oscuro).
+$light: #f7f7f7;
+$dark: #343a40;
+
+// -- Modo oscuro --------------------------------------------------------------
+// $enable-dark-mode y $color-mode-type: data ya son los defaults de BS 5.3, así
+// que basta con data-bs-theme="dark" en <html>. Estos overrides son lo que hace
+// que el modo oscuro deje de ser el gris azulado por defecto ($gray-900/$gray-300).
+$body-bg-dark: $pb-surface-0;
+$body-color-dark: $pb-text-2;
+$body-emphasis-color-dark: $pb-text-1;
+$body-secondary-bg-dark: $pb-surface-1;
+$body-tertiary-bg-dark: $pb-surface-2;
+$border-color-dark: $pb-border;
+$border-color-translucent-dark: rgba(#fff, 0.1);
+$headings-color-dark: $pb-text-1; // el default es `inherit`
+$link-color-dark: $pb-brand-400; // 8,27:1 — sin esto los enlaces fallan AA
+$link-hover-color-dark: $pb-brand-200;
+$primary-text-emphasis-dark: $pb-brand-400;
+$primary-bg-subtle-dark: #230030;
+$primary-border-subtle-dark: #6a0090;
+
+// -- Forma y movimiento -------------------------------------------------------
+$border-radius: 0.625rem;
+$border-radius-sm: 0.375rem;
+$border-radius-lg: 0.875rem;
+$border-radius-xl: 1.25rem;
+$border-radius-pill: 50rem;
+
+$link-decoration: none;
+$link-hover-decoration: underline;
+
+// El antiguo App.css tenía `transition: all .3s ease` sobre .btn, que pisaba la
+// transición afinada de Bootstrap y animaba propiedades de layout.
+$btn-transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
+    border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out,
+    transform 0.15s ease-in-out;
+$btn-font-weight: 600;
+$btn-focus-width: 0.2rem;
+
+// -- Formularios --------------------------------------------------------------
+$input-bg: $pb-surface-2;
+$input-disabled-bg: $pb-surface-1;
+$input-border-color: $pb-border;
+$input-color: $pb-text-1;
+$input-focus-bg: $pb-surface-2;
+$input-focus-border-color: $pb-brand-500;
+$input-focus-color: $pb-text-1;
+$input-placeholder-color: $pb-text-3;
+$input-padding-y: 0.625rem;
+$input-padding-x: 0.875rem;
+$input-group-addon-bg: $pb-surface-3;
+$input-group-addon-color: $pb-text-3;
+$form-check-input-bg: $pb-surface-3;
+$form-check-input-border: 1px solid $pb-border-strong;
+
+// -- Componentes --------------------------------------------------------------
+$modal-content-bg: $pb-surface-1;
+$modal-content-border-color: $pb-border;
+$modal-backdrop-bg: #000;
+// Sobre un fondo casi negro, el 0,5 por defecto apenas separa el modal.
+$modal-backdrop-opacity: 0.72;
+$modal-header-border-color: $pb-border;
+$modal-footer-border-color: $pb-border;
+
+$card-bg: $pb-surface-1;
+$card-border-color: $pb-border;
+
+$list-group-bg: $pb-surface-1;
+$list-group-border-color: $pb-border;
+$list-group-hover-bg: $pb-surface-2;
+$list-group-color: $pb-text-2;
+$list-group-action-color: $pb-text-2;
+$list-group-action-hover-color: $pb-text-1;
+
+$popover-bg: $pb-surface-2;
+$popover-border-color: $pb-border-strong;
+$popover-header-bg: $pb-surface-3;
+$popover-body-color: $pb-text-2;
+
+$table-bg: transparent;
+$table-border-color: $pb-border;
+$table-hover-bg: $pb-surface-2;

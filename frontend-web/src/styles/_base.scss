@@ -1,0 +1,54 @@
+// =============================================================================
+// Capa base: los pocos ajustes de elemento que Bootstrap no cubre.
+//
+// Deliberadamente corto. El antiguo App.css tenía un `* { margin: 0; padding: 0 }`
+// que borraba los márgenes de _reboot.scss en p, h1-h6, ul, dl y figure, y luego
+// el markup los recomponía a mano con utilidades mb-3/mb-4. Aquí se confía en
+// _reboot y no se declara nada que Bootstrap ya normalice.
+// =============================================================================
+
+html {
+    scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+}
+
+body {
+    // El navbar es fijo: sin este offset el contenido queda debajo.
+    padding-top: var(--pb-navbar-height, 4rem);
+    background-color: var(--pb-surface-0, #0a0710);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scrollbar-width: thin;
+    // El App.css original usaba var(--primary) y var(--light), que no existen:
+    // Bootstrap las emite con prefijo --bs-. La declaración entera se descartaba
+    // y el scrollbar quedaba con el estilo por defecto del navegador.
+    scrollbar-color: var(--pb-brand-500, #b000f0) var(--pb-surface-1, #120d19);
+}
+
+::selection {
+    background-color: var(--pb-brand-500, #b000f0);
+    color: #fff;
+}
+
+// Anclas de sección: compensa el navbar fijo al saltar con #id.
+:target {
+    scroll-margin-top: calc(var(--pb-navbar-height, 4rem) + 1rem);
+}
+
+// Foco visible y coherente en toda la app, también sobre superficies oscuras.
+:focus-visible {
+    outline: 2px solid var(--pb-brand-400, #d08bf5);
+    outline-offset: 2px;
+}
+
+// Las imágenes nunca desbordan su contenedor.
+img,
+svg {
+    max-width: 100%;
+    height: auto;
+}

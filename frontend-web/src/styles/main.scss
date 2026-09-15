@@ -1,0 +1,38 @@
+// =============================================================================
+// Punto de entrada único de estilos. Lo importa src/main.tsx y nada más.
+//
+// EL ORDEN IMPORTA: es la arquitectura. Antes, cada componente importaba su
+// propio .css y el orden final de la cascada dependía del recorrido del grafo
+// de módulos de Vite, así que reordenar un import en un .tsx podía cambiar los
+// estilos. Con un único entry eso deja de ser posible.
+//
+// El SCSS lo compila Vite (paquete `sass` en devDependencies). El antiguo
+// flujo — compilar a mano con `sass -q` y versionar el CSS resultante — está
+// retirado: sin `sass` instalado, nadie que clonara el repo podía regenerar
+// el tema.
+// =============================================================================
+
+// 1. @font-face primero, para que estén declaradas antes de cualquier uso.
+@import "fonts";
+
+// 2-3. Sin output CSS: solo variables Sass que configuran Bootstrap.
+@import "palette";
+@import "variables";
+
+// 4. Bootstrap. Emite la mayor parte del CSS.
+//    Se importa por nombre de paquete, no con una ruta relativa a node_modules.
+//    @use no es viable: $primary se declara con !default dentro de _variables.scss,
+//    cargado por @import desde bootstrap.scss, así que no es una variable
+//    configurable del módulo. Eso llega con Bootstrap 6.
+@import "bootstrap/scss/bootstrap";
+
+// 5. Tokens en runtime y parches sobre las --bs-* que no son color-mode-aware.
+@import "tokens";
+
+// 6-7. CSS propio.
+@import "base";
+@import "components";
+
+// 8-9. Terceros al final, para que nuestros overrides ganen por orden.
+@import "react-toastify/dist/ReactToastify.css";
+@import "vendor";

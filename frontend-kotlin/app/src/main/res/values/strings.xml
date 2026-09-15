@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PlayButton</string>
+
+    <!-- Navegacion principal -->
+    <string name="nav_public">Públicas</string>
+    <string name="nav_my_playlists">Mis playlists</string>
+    <!-- Antes "Mis playlist favoritas": el listado incluye tambien artistas,
+         que son playlists generadas automaticamente. -->
+    <string name="nav_favorites">Mis favoritos</string>
+    <string name="nav_artists">Artistas</string>
+
+    <string name="title_public_playlists">Playlists públicas</string>
+    <string name="title_my_playlists">Mis playlists</string>
+    <string name="title_favorites">Mis favoritos</string>
+    <string name="title_artists">Artistas</string>
+    <string name="title_playlist_detail">Detalles de playlist</string>
+    <string name="title_artist_detail">Artista</string>
+    <string name="title_add_songs">Añadir canciones</string>
+    <string name="title_new_playlist">Nueva playlist</string>
+    <string name="title_suggestions">Sugerir canciones</string>
+    <string name="title_settings">Configuración</string>
+    <string name="title_user_playlists">Playlists de %1$s</string>
+
+    <!-- Acceso -->
+    <string name="login_nickname">Usuario</string>
+    <string name="login_password">Contraseña</string>
+    <string name="login_submit">Iniciar sesión</string>
+    <string name="login_failed">Usuario o contraseña incorrectos</string>
+    <string name="login_no_account">¿No tienes cuenta? Pídesela al administrador de tu servidor.</string>
+    <string name="login_configure_server">Configurar servidor</string>
+    <string name="login_view_github">Ver en GitHub</string>
+    <string name="server_url">URL del servidor</string>
+    <string name="server_url_hint">miservidor.com</string>
+    <string name="server_url_empty">Configura primero la URL de tu servidor</string>
+
+    <!-- Contrasenas -->
+    <string name="show_password">Mostrar contraseña</string>
+    <string name="hide_password">Ocultar contraseña</string>
+    <string name="change_password">Cambiar contraseña</string>
+    <string name="current_password">Contraseña actual</string>
+    <string name="new_password">Nueva contraseña</string>
+    <string name="confirm_password">Confirmar nueva contraseña</string>
+    <string name="password_mismatch">Las contraseñas no coinciden</string>
+    <string name="password_too_short">La contraseña debe tener al menos 6 caracteres</string>
+    <string name="password_fields_required">Rellena todos los campos</string>
+    <string name="password_changed">Contraseña actualizada</string>
+    <string name="password_change_failed">No se pudo cambiar la contraseña</string>
+
+    <!-- Listados -->
+    <string name="search_playlist">Buscar playlist…</string>
+    <string name="search_artist">Buscar artista…</string>
+    <string name="search_song">Buscar canción…</string>
+    <string name="search_clear">Limpiar búsqueda</string>
+    <string name="empty_playlists">No se encontraron playlists</string>
+    <string name="empty_artists">No se encontraron artistas</string>
+    <string name="empty_songs">Esta playlist no tiene canciones</string>
+    <string name="playlist_private">Privada</string>
+    <string name="favorite_add">Añadir a favoritos</string>
+    <string name="favorite_remove">Quitar de favoritos</string>
+    <string name="new_playlist">Nueva playlist</string>
+
+    <!-- Detalle -->
+    <string name="playlist_play">Reproducir</string>
+    <string name="playlist_add_songs">Añadir canciones</string>
+    <string name="playlist_options">Opciones</string>
+    <string name="playlist_edit">Editar</string>
+    <string name="playlist_delete">Eliminar</string>
+    <string name="playlist_name">Nombre de la playlist</string>
+    <string name="playlist_public_switch">Playlist pública</string>
+    <string name="playlist_delete_confirm">¿Seguro que quieres eliminar «%1$s»?</string>
+    <string name="song_remove">Quitar de la playlist</string>
+    <string name="song_remove_confirm">¿Quitar «%1$s» de la playlist?</string>
+    <string name="filter_songs">Filtrar canciones…</string>
+    <plurals name="downloaded_playlists_count">
+        <item quantity="one">%1$d playlist</item>
+        <item quantity="other">%1$d playlists</item>
+    </plurals>
+
+    <plurals name="cache_songs_count">
+        <item quantity="one">%1$d canción</item>
+        <item quantity="other">%1$d canciones</item>
+    </plurals>
+
+    <string name="playlist_save">Descargar en el dispositivo</string>
+    <string name="playlist_download_remove">Eliminar la descarga</string>
+    <string name="download_channel_progress">Descargas en curso</string>
+    <string name="download_channel_done">Descargas terminadas</string>
+    <string name="download_notification_title">Descargando %1$s</string>
+    <string name="download_notification_progress">%1$d de %2$d canciones</string>
+    <string name="download_done_title">%1$s descargada</string>
+    <string name="download_partial_title">%1$s descargada a medias</string>
+    <string name="download_partial_text">Se ha parado en %1$d de %2$d canciones para no llenar el dispositivo</string>
+    <string name="download_failed_title">No se pudo descargar %1$s</string>
+    <string name="download_failed_text">Quedan %1$d canciones descargadas; se puede volver a intentar</string>
+    <string name="playlist_download_remove_confirm">Se borrará del dispositivo el audio de esta playlist. Podrás volver a descargarla cuando quieras.</string>
+    <string name="downloaded_playlists">Guardadas en el dispositivo</string>
+    <string name="playlist_save_progress">%1$d/%2$d</string>
+    <string name="playlist_save_cancel">Cancelar la descarga</string>
+    <string name="playlist_saved">Guardada en el dispositivo</string>
+
+    <plurals name="playlist_songs_count">
+        <item quantity="one">%1$d canción</item>
+        <item quantity="other">%1$d canciones</item>
+    </plurals>
+
+    <!-- Anadir canciones -->
+    <string name="add_song">Añadir canción</string>
+    <string name="song_added">Canción añadida</string>
+    <string name="song_added_message">La canción se ha añadido a la playlist</string>
+    <string name="dont_show_again">No volver a mostrar</string>
+    <string name="no_results_for">No hay resultados para «%1$s»</string>
+    <string name="create_suggestion">Crear sugerencia</string>
+    <string name="already_in_playlist">Es posible que la canción que buscas ya esté en la playlist.</string>
+
+    <!-- Sugerencias -->
+    <string name="suggestion_artist">Artista</string>
+    <string name="suggestion_song">Nombre de la canción</string>
+    <string name="suggestion_send">Enviar sugerencia</string>
+    <string name="suggestion_sent">Sugerencia enviada</string>
+    <string name="suggestion_failed">No se pudo enviar la sugerencia</string>
+
+    <!-- Reproductor -->
+    <string name="player_play">Reproducir</string>
+    <string name="player_pause">Pausar</string>
+    <string name="player_next">Siguiente</string>
+    <string name="player_previous">Anterior</string>
+    <string name="player_queue_show">Mostrar cola</string>
+    <string name="player_queue_hide">Ocultar cola</string>
+    <string name="player_nothing">No hay ninguna canción en reproducción</string>
+    <string name="player_loading">Cargando…</string>
+    <string name="player_unknown_artist">Desconocido</string>
+    <string name="player_zen_mode">Modo Zen</string>
+    <string name="player_zen_play">Reproducir en Modo Zen</string>
+    <string name="player_collapse">Contraer reproductor</string>
+    <string name="player_expand">Abrir reproductor</string>
+
+    <!-- Configuracion -->
+    <string name="settings_server">Servidor actual</string>
+    <string name="settings_crossfade">Fundido entre canciones</string>
+    <string name="settings_crossfade_summary">Encadena el final de una canción con el inicio de la siguiente</string>
+    <string name="settings_cache">Caché</string>
+    <string name="settings_cache_summary">%1$s · %2$s de %3$s</string>
+    <string name="settings_cache_summary_off">%1$s · las canciones no se guardan</string>
+    <string name="settings_cache_explanation">Las canciones que escuchas se guardan en el dispositivo para no tener que descargarlas otra vez, así que escuchar la misma playlist a diario apenas gasta datos. Al llegar al límite se descarta lo que llevas más tiempo sin oír.</string>
+    <string name="settings_cache_limit">Ocupa hasta %1$s del dispositivo</string>
+    <string name="settings_cache_off_summary">No se guarda nada: cada reproducción se descarga otra vez</string>
+    <string name="settings_cache_in_use">Guardado ahora: %1$s · %2$s</string>
+    <string name="settings_cache_empty">Ahora mismo no hay nada guardado</string>
+    <string name="settings_cache_clear">Vaciar ahora</string>
+    <string name="cache_size_off">Ninguna</string>
+    <string name="cache_size_small">Pequeña</string>
+    <string name="cache_size_medium">Mediana</string>
+    <string name="cache_size_large">Grande</string>
+
+    <string name="settings_downloads">Almacenamiento</string>
+    <string name="settings_downloads_summary">%1$s · %2$s</string>
+    <string name="settings_downloads_empty">No hay playlists descargadas</string>
+    <string name="settings_downloads_clear">Vaciar el almacenamiento</string>
+    <string name="settings_downloads_clear_confirm">Se borrará el audio de %1$s descargadas (%2$s). Las playlists siguen en el servidor y se pueden volver a descargar cuando quieras.</string>
+    <string name="settings_suggestions">Sugerir canciones</string>
+    <string name="settings_github">Repositorio en GitHub</string>
+    <string name="settings_version">Versión de la app</string>
+    <string name="settings_danger_zone">Zona de peligro</string>
+    <string name="settings_logout">Cerrar sesión</string>
+    <string name="settings_logout_confirm">¿Seguro que quieres cerrar sesión?</string>
+    <string name="settings_delete_account">Eliminar mi cuenta</string>
+    <string name="settings_delete_account_confirm">Esta acción es irreversible: se eliminarán tu cuenta y tus playlists. ¿Continuar?</string>
+    <string name="settings_delete_account_failed">No se pudo eliminar la cuenta</string>
+
+    <!-- Comunes -->
+    <string name="accept">Aceptar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="save">Guardar</string>
+    <string name="close">Cerrar</string>
+    <string name="delete">Eliminar</string>
+    <string name="back">Atrás</string>
+    <string name="settings">Configuración</string>
+    <string name="error_connection">No se pudo conectar con el servidor</string>
+    <string name="retry">Reintentar</string>
+    <string name="error_session_expired">Tu sesión ha caducado. Vuelve a iniciar sesión.</string>
+    <string name="error_generic">Ha ocurrido un error</string>
+</resources>

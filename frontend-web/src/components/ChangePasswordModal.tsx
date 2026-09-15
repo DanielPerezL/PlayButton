@@ -1,0 +1,84 @@
+import React, { useState } from "react";
+import { updateUserPassword } from "../services/apiService";
+import { toast } from "react-toastify";
+import { User } from "../interfaces";
+import LoadingButton from "./LoadingButton";
+
+interface Props {
+  show: boolean;
+  onClose: () => void;
+  user: User;
+}
+
+const ChangePasswordModal: React.FC<Props> = ({ show, onClose, user }) => {
+  const [newPassword, setNewPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!newPassword) {
+      toast.error("Ingresa la nueva contraseña");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await updateUserPassword(user.id, newPassword); // solo enviamos la nueva contraseña
+      toast.success(`Contraseña del usuario '${user.nickname}' actualizada`);
+      onClose();
+      setNewPassword(""); // limpiar campo
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.message || "Error al actualizar contraseña");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!show) return null;
+
+  return (
+    <>
+      <div className="pb-backdrop" onClick={onClose} />
+      <div className="modal d-block" tabIndex={-1} style={{ zIndex: 1050 }}>
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Cambiar Contraseña</h5>
+              <button
+                type="button"
+                className="btn-close"
+                onClick={onClose}
+              ></button>
+            </div>
+            <div className="modal-body">
+              <label className="form-label">
+                Nueva contraseña para <strong>{user.nickname}</strong>
+              </label>
+              <input
+                type="password"
+                className="form-control"
+                placeholder="Nueva contraseña"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-outline-secondary" onClick={onClose}>
+                Cancelar
+              </button>
+              <LoadingButton
+                onClick={handleSubmit}
+                loading={loading}
+                className="btn btn-outline-success"
+              >
+                {loading ? "Guardando..." : "Guardar"}
+              </LoadingButton>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default ChangePasswordModal;

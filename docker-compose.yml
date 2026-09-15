@@ -1,0 +1,60 @@
+services:
+  mysql_playbutton:
+    image: mysql:9.0.1
+    container_name: mysql_db_playbutton
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE_NAME}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    networks:
+      - my_network
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u${MYSQL_USER}",
+          "-p${MYSQL_PASSWORD}",
+        ]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      timeout: 5s
+
+  backend_playbutton:
+    build: ./backend
+    container_name: flask_backend_playbutton
+    volumes:
+      - ./backend:/app
+    ports:
+      - "5000:5000"
+    environment:
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_USER: ${MYSQL_USER}
+      DATABASE_PASSWORD: ${MYSQL_PASSWORD}
+      DATABASE_NAME: ${MYSQL_DATABASE_NAME}
+      SECRET_KEY: ${SECRET_KEY}
+      CORS_ENABLED: ${CORS_ENABLED}
+    depends_on:
+      mysql_playbutton:
+        condition: service_healthy
+    networks:
+      - my_network
+
+networks:
+  my_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local

@@ -1,0 +1,407 @@
+// =============================================================================
+// Componentes propios.
+//
+// Reglas de higiene: todo lleva prefijo .pb-, cero selectores de elemento sueltos,
+// cero !important y especificidad máxima 0-2-0. Los tokens se leen siempre con
+// fallback, para que un token mal escrito degrade en lugar de desaparecer.
+// =============================================================================
+
+@import "palette";
+
+// -- Utilidades ---------------------------------------------------------------
+
+.pb-clickable {
+    cursor: pointer;
+}
+
+.pb-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pb-measure {
+    max-width: var(--pb-measure, 68ch);
+}
+
+// Texto con el degradado de la marca. Necesita color transparente, así que
+// siempre se pinta un color de respaldo por si background-clip no aplica.
+.pb-gradient-text {
+    color: var(--pb-brand-300, #c54bf2);
+    background: var(--pb-brand-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+@supports (-webkit-background-clip: text) or (background-clip: text) {
+    .pb-gradient-text {
+        color: transparent;
+    }
+}
+
+.pb-spinner-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-height: 20vh;
+}
+
+// -- Superficies --------------------------------------------------------------
+
+.pb-panel {
+    background-color: var(--pb-surface-1, #120d19);
+    border: 1px solid var(--pb-border, #2e2440);
+    border-radius: 1rem;
+    box-shadow: var(--pb-shadow-2);
+    padding: clamp(1.25rem, 4vw, 2.5rem);
+}
+
+.pb-card {
+    height: 100%;
+    background-color: var(--pb-surface-1, #120d19);
+    border: 1px solid var(--pb-border, #2e2440);
+    border-radius: 1rem;
+    padding: 1.75rem;
+    box-shadow: var(--pb-shadow-1);
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pb-card:hover {
+    border-color: var(--pb-border-strong, #45375c);
+    transform: translateY(-2px);
+    box-shadow: var(--pb-shadow-2);
+}
+
+.pb-card__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-bottom: 1.25rem;
+    border-radius: 0.75rem;
+    color: var(--pb-brand-400, #d08bf5);
+    background-color: rgba(var(--pb-brand-500-rgb, 176, 0, 240), 0.12);
+    border: 1px solid rgba(var(--pb-brand-500-rgb, 176, 0, 240), 0.28);
+}
+
+// -- Ritmo de sección ---------------------------------------------------------
+
+.pb-section {
+    padding-block: clamp(3.5rem, 9vw, 6.5rem);
+}
+
+.pb-section--tight {
+    padding-block: clamp(2.5rem, 6vw, 4rem);
+}
+
+.pb-section__eyebrow {
+    display: block;
+    margin-bottom: 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--pb-brand-400, #d08bf5);
+}
+
+.pb-section__title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    margin-bottom: 1rem;
+}
+
+.pb-section__lead {
+    color: var(--pb-text-2, #bdb3cc);
+    font-size: 1.0625rem;
+}
+
+// -- Navbar -------------------------------------------------------------------
+
+.pb-navbar {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 1030;
+    min-height: var(--pb-navbar-height, 4rem);
+    display: flex;
+    align-items: center;
+    // El fondo era un #310042 inline en NavBar.tsx, imposible de tematizar.
+    // Se usa la superficie base translúcida en lugar del violeta de marca:
+    // sobre #310042 el wordmark del logo (#B000F0) se queda en 2,9:1 y se
+    // empasta; sobre el casi-negro el degradado del logo destaca de verdad.
+    background-color: color-mix(
+        in srgb,
+        var(--pb-surface-0, #0a0710) 78%,
+        transparent
+    );
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border-bottom: 1px solid var(--pb-border, #2e2440);
+}
+
+// Sin soporte de color-mix el fondo debe ser opaco o se ve el contenido detrás.
+@supports not (color-mix(in srgb, red 50%, transparent)) {
+    .pb-navbar {
+        background-color: var(--pb-surface-0, #0a0710);
+    }
+}
+
+.pb-navbar__logo {
+    height: 2.25rem;
+    width: auto;
+    display: block;
+}
+
+// -- Hero ---------------------------------------------------------------------
+
+.pb-hero {
+    position: relative;
+    overflow: hidden;
+    padding-block: clamp(3rem, 10vw, 7rem) clamp(3rem, 8vw, 5rem);
+    text-align: center;
+}
+
+// Resplandor radial de fondo. Puramente decorativo.
+.pb-hero::before {
+    content: "";
+    position: absolute;
+    top: -30%;
+    left: 50%;
+    width: min(120vw, 60rem);
+    aspect-ratio: 1;
+    transform: translateX(-50%);
+    background: radial-gradient(
+        circle,
+        rgba(var(--pb-brand-500-rgb, 176, 0, 240), 0.22) 0%,
+        rgba(var(--pb-brand-500-rgb, 176, 0, 240), 0.07) 38%,
+        transparent 68%
+    );
+    pointer-events: none;
+    z-index: 0;
+}
+
+.pb-hero > * {
+    position: relative;
+    z-index: 1;
+}
+
+.pb-hero__mark {
+    width: clamp(7rem, 20vw, 11rem);
+    height: auto;
+    margin-bottom: 2rem;
+    filter: drop-shadow(0 0 2.5rem rgba(var(--pb-brand-500-rgb, 176, 0, 240), 0.55));
+    animation: pb-mark-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.pb-hero__title {
+    font-size: clamp(2.5rem, 8vw, 4.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.25rem;
+}
+
+.pb-hero__lead {
+    max-width: 44ch;
+    margin-inline: auto;
+    margin-bottom: 2.25rem;
+    font-size: clamp(1.0625rem, 2.2vw, 1.25rem);
+    color: var(--pb-text-2, #bdb3cc);
+}
+
+@keyframes pb-mark-in {
+    from {
+        opacity: 0;
+        transform: translateY(1rem) scale(0.94);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pb-hero__mark {
+        animation: none;
+    }
+}
+
+// -- Pasos numerados ----------------------------------------------------------
+
+.pb-step__number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-bottom: 1.25rem;
+    border-radius: 50%;
+    font-family: var(--pb-font-heading, "Outfit Variable", system-ui, sans-serif);
+    font-weight: 700;
+    color: #fff;
+    background: var(--pb-brand-gradient);
+    box-shadow: var(--pb-glow);
+}
+
+// -- Bloque destacado (modo Zenn) ---------------------------------------------
+
+.pb-highlight {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.25rem;
+    border: 1px solid rgba(var(--pb-brand-500-rgb, 176, 0, 240), 0.3);
+    background: linear-gradient(
+        135deg,
+        rgba(var(--pb-brand-500-rgb, 176, 0, 240), 0.14) 0%,
+        var(--pb-surface-1, #120d19) 55%
+    );
+    padding: clamp(1.75rem, 5vw, 3.25rem);
+}
+
+// -- Footer -------------------------------------------------------------------
+
+.pb-footer {
+    // Antes era .bg-dark (#343a40), un gris azulado que sobre el fondo violáceo
+    // se leía como un error de render.
+    background-color: var(--pb-surface-1, #120d19);
+    border-top: 1px solid var(--pb-border, #2e2440);
+    color: var(--pb-text-2, #bdb3cc);
+    padding-block: 3rem;
+}
+
+.pb-footer__title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--pb-text-3, #8e85a0);
+    margin-bottom: 1rem;
+}
+
+.pb-footer__link {
+    display: inline-block;
+    padding-block: 0.25rem;
+    color: var(--pb-text-2, #bdb3cc);
+    text-decoration: none;
+}
+
+.pb-footer__link:hover,
+.pb-footer__link:focus-visible {
+    color: var(--pb-brand-400, #d08bf5);
+}
+
+.pb-footer__logo {
+    max-width: 11rem;
+    width: 100%;
+    height: auto;
+    cursor: pointer;
+}
+
+// -- Pestañas del panel -------------------------------------------------------
+
+.pb-tabs {
+    display: inline-flex;
+    gap: 0.25rem;
+    padding: 0.3125rem;
+    border-radius: 0.875rem;
+    background-color: var(--pb-surface-2, #1a1424);
+    border: 1px solid var(--pb-border, #2e2440);
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.pb-tabs__item {
+    flex: 0 0 auto;
+    padding: 0.5rem 1.125rem;
+    border: 0;
+    border-radius: 0.625rem;
+    background: transparent;
+    color: var(--pb-text-2, #bdb3cc);
+    font-weight: 600;
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.pb-tabs__item:hover {
+    color: var(--pb-text-1, #f2edf7);
+    background-color: var(--pb-surface-3, #241c31);
+}
+
+.pb-tabs__item[aria-selected="true"] {
+    color: #fff;
+    background: var(--pb-brand-600, #9b00d4);
+    box-shadow: var(--pb-shadow-1);
+}
+
+// -- Login --------------------------------------------------------------------
+
+.pb-auth {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    padding-block: 2rem;
+}
+
+.pb-auth__card {
+    width: 100%;
+    max-width: 25rem;
+}
+
+.pb-auth__mark {
+    width: 3.5rem;
+    height: auto;
+    margin-bottom: 1.25rem;
+    filter: drop-shadow(0 0 1.25rem rgba(var(--pb-brand-500-rgb, 176, 0, 240), 0.5));
+}
+
+// -- Documento legible (páginas legales) --------------------------------------
+
+.pb-doc {
+    max-width: var(--pb-measure, 68ch);
+    margin-inline: auto;
+    color: var(--pb-text-2, #bdb3cc);
+}
+
+.pb-doc h2 {
+    margin-top: 2.5rem;
+    margin-bottom: 0.875rem;
+    font-size: 1.375rem;
+}
+
+.pb-doc h3 {
+    margin-top: 1.75rem;
+    margin-bottom: 0.625rem;
+    font-size: 1.125rem;
+}
+
+.pb-doc p,
+.pb-doc ul,
+.pb-doc ol {
+    margin-bottom: 1.125rem;
+}
+
+.pb-doc a {
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+}
+
+// -- Backdrop de los modales montados a mano ----------------------------------
+// AddSongModal, EditSongModal, AddUserModal y ChangePasswordModal no usan el
+// <Modal> de react-bootstrap: se pintan su propio backdrop. Estaba repetido
+// como estilo inline con rgba(0,0,0,.5) en los cuatro; sobre el fondo casi
+// negro ese 50% no separaba el modal del contenido de detrás.
+.pb-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1040;
+    background-color: rgba(0, 0, 0, 0.72);
+}
+
+// -- Barra inferior fija (móvil) ----------------------------------------------
+
+.pb-bottom-nav {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    z-index: 1000;
+}

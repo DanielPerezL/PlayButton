@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!--
+      Tema de arranque: pinta el fondo definitivo y el isotipo antes de que
+      Compose tome el control, para que la app no abra en blanco como hace hoy
+      la version React Native.
+    -->
+    <style name="Theme.PlayButton.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/surface_0</item>
+        <!--
+          El splash dibuja el icono a 288dp, muy por encima de los 108dp del
+          foreground del launcher, asi que usa su propio drawable en alta
+          resolucion para no verse borroso al arrancar.
+        -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_icon</item>
+        <item name="postSplashScreenTheme">@style/Theme.PlayButton</item>
+    </style>
+
+    <style name="Theme.PlayButton" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">@color/surface_0</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

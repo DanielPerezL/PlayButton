@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- La sesion y la URL del servidor no se respaldan: un restore en otro
+         dispositivo no debe arrastrar el token de acceso. -->
+    <exclude domain="sharedpref" path="." />
+    <exclude domain="file" path="datastore" />
+</full-backup-content>

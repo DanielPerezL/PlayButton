@@ -1,0 +1,9 @@
+# Entorno: copia .env.example a .env y mantenlo fuera del control de versiones
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Editores
+.vscode/
