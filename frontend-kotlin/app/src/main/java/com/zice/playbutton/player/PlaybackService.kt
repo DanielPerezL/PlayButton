@@ -15,8 +15,10 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
+import androidx.media3.session.CacheBitmapLoader
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import coil3.ImageLoader
 import com.zice.playbutton.MainActivity
 import com.zice.playbutton.data.local.AudioCache
 import com.zice.playbutton.data.local.SettingsStore
@@ -52,6 +54,9 @@ class PlaybackService : MediaSessionService() {
     @Inject lateinit var playbackQueue: PlaybackQueue
     @Inject lateinit var settingsStore: SettingsStore
     @Inject lateinit var audioCache: AudioCache
+
+    /** El de la app, con sus portadas ya en disco. Ver [CoilBitmapLoader]. */
+    @Inject lateinit var imageLoader: ImageLoader
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var mediaSession: MediaSession? = null
@@ -159,6 +164,11 @@ class PlaybackService : MediaSessionService() {
             // es inerte. Es lo que abre la app desde la notificacion, la
             // pantalla de bloqueo o el reproductor del coche.
             .setSessionActivity(openAppIntent())
+            // La portada sale de Coil y no del cargador de serie, que solo
+            // sabe ir a la red. El envoltorio que cachea la ultima es el
+            // mismo que pone Media3 por su cuenta: la notificacion se
+            // redibuja a cada paso y sin el se decodificaria cada vez.
+            .setBitmapLoader(CacheBitmapLoader(CoilBitmapLoader(this, imageLoader)))
             .build()
     }
 
