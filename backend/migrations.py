@@ -376,6 +376,55 @@ def _shown_zen():
     db.session.commit()
 
 
+# --------------------------------------------------- imagenes sueltas (0006)
+
+# Una imagen esta en uso si alguna de las tres tablas la apunta. La condicion
+# se comparte entre el informe y el borrado para que cuenten lo mismo.
+_ORPHAN_IMAGES_WHERE = " AND ".join(
+    f"NOT EXISTS (SELECT 1 FROM `{table}` WHERE image_id = i.id)"
+    for table in _IMAGE_OWNER_TABLES
+)
+
+
+def _report_orphan_images():
+    # En una base sin tablas no hay nada que contar: el dry-run no pasa por
+    # create_all a proposito, asi que aqui puede no existir ni `image`.
+    if not has_table("image"):
+        return []
+
+    count, size = db.session.execute(text(
+        "SELECT COUNT(*), COALESCE(SUM(LENGTH(i.data)), 0) "
+        f"FROM `image` i WHERE {_ORPHAN_IMAGES_WHERE}"
+    )).first()
+
+    if not count:
+        return ["no hay imagenes sueltas"]
+
+    size = int(size)
+    cuantas = "1 imagen suelta" if count == 1 else f"{count} imagenes sueltas"
+    ocupan = f"{size} B" if size < 1024 else f"{size // 1024} KB"
+    return [f"se borran {cuantas}, {ocupan}"]
+
+
+@step("0006_orphan_images", report=_report_orphan_images)
+def _orphan_images():
+    """
+    Borra las portadas que ya no cuelgan de nada.
+
+    Ningun borrado se llevaba consigo su imagen: quitar una cancion, una
+    playlist, o un artista que se quedaba sin canciones, dejaba la portada en
+    la tabla para siempre. La clave ajena va en el sentido contrario (ON DELETE
+    SET NULL protege al dueno cuando se borra la imagen), asi que nada las
+    recogia, y sin un listado de imagenes tampoco habia por donde verlas: solo
+    aparecen cruzando `image` con las tres tablas que la apuntan.
+
+    De que no vuelvan a acumularse se encarga el delete-orphan de la relacion,
+    en models/image.py. Este paso es solo para las que quedaron antes.
+    """
+    db.session.execute(text(f"DELETE i FROM `image` i WHERE {_ORPHAN_IMAGES_WHERE}"))
+    db.session.commit()
+
+
 # ------------------------------------------------------------------- registro
 
 def _ensure_registry_table():

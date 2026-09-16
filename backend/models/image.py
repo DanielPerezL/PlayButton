@@ -36,6 +36,26 @@ class Image(db.Model):
         return f"{origin}/uploads/images/{self.id}"
 
 
+def image_relationship():
+    """
+    La portada vista desde su dueno: una cancion, un artista o una playlist.
+
+    `delete-orphan` es lo que mantiene la tabla sin filas muertas. La imagen se
+    va con el dueno cuando se le borra, y al cambiarle la portada se va sola la
+    anterior. Sin esto una cancion borrada dejaba su portada ocupando sitio en
+    la base de datos sin que nada la mostrara ni volviera a nombrarla: no hay
+    listado de imagenes sueltas por el que apareciera.
+
+    `single_parent` es la otra mitad del trato: una fila de `image` cuelga de un
+    unico dueno, que es lo que permite darla por muerta en cuanto ese dueno la
+    suelta. Nunca se comparte una imagen entre dos, cada subida crea la suya.
+
+    Ojo: la FK lleva ON DELETE SET NULL, que es para el sentido contrario
+    (borrar la imagen no se lleva por delante a su dueno) y no cubre este.
+    """
+    return db.relationship('Image', cascade='all, delete-orphan', single_parent=True)
+
+
 def image_url_of(image):
     """URL de una imagen que puede no existir, tal y como viaja en los DTO."""
     return image.get_url() if image is not None else None

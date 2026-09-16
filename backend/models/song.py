@@ -1,6 +1,6 @@
 from config import db
 from flask import request
-from .image import image_url_of
+from .image import image_relationship, image_url_of
 
 class Song(db.Model):
     """
@@ -18,7 +18,7 @@ class Song(db.Model):
     title = db.Column(db.String(255), nullable=False)
     shown_zen = db.Column(db.Boolean, default=True)
     image_id = db.Column(db.Integer, db.ForeignKey('image.id', ondelete='SET NULL'), nullable=True)
-    image = db.relationship('Image')
+    image = image_relationship()
 
     def __init__(self, title):
         self.title = title

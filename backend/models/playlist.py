@@ -1,5 +1,5 @@
 from config import db
-from .image import image_url_of
+from .image import image_relationship, image_url_of
 
 
 # Tabla de asociación entre Playlists y Songs
@@ -20,7 +20,7 @@ class Playlist(db.Model):
     name = db.Column(db.String(255), nullable=False)
     is_public = db.Column(db.Boolean, default=True)
     image_id = db.Column(db.Integer, db.ForeignKey('image.id', ondelete='SET NULL'), nullable=True)
-    image = db.relationship('Image')
+    image = image_relationship()
 
     # Las playlists de artista se distinguian por una bandera y se cruzaban con
     # el artista por nombre. Ahora lo apuntan: la bandera se deduce de aqui, y

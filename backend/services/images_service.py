@@ -54,6 +54,9 @@ class ImagesService:
         Cuelga una portada nueva de `owner` (canción, artista o playlist) y
         borra la que tuviera. Nunca se modifica una fila de `image`: así su URL
         puede cachearse para siempre y cambiarla invalida la caché sola.
+
+        De borrar la anterior se encarga el `delete-orphan` de la relación, que
+        es quien lo hace también cuando lo que desaparece es el dueño entero.
         """
         if image_file is None or not image_file.filename:
             raise BadRequestException("Falta el archivo de imagen")
@@ -76,18 +79,11 @@ class ImagesService:
             raise BadImageFileException()
 
         try:
-            previous = owner.image
-
             image = Image(mime="image/webp", data=data, width=width, height=height)
             db.session.add(image)
             db.session.flush()
 
             owner.image = image
-            db.session.flush()
-
-            if previous is not None:
-                db.session.delete(previous)
-
             db.session.commit()
             return image
         except AppException:
@@ -99,14 +95,12 @@ class ImagesService:
 
     @staticmethod
     def clear_for(owner):
+        """Deja a `owner` sin portada. La fila de `image` se va con ella."""
         try:
-            previous = owner.image
-            if previous is None:
+            if owner.image is None:
                 return
 
             owner.image = None
-            db.session.flush()
-            db.session.delete(previous)
             db.session.commit()
         except Exception:
             db.session.rollback()
