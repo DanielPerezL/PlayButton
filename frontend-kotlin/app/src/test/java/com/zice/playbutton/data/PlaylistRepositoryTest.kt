@@ -1,21 +1,29 @@
 package com.zice.playbutton.data
 
+import com.zice.playbutton.data.local.ImageCache
+import com.zice.playbutton.data.local.PickedImage
+import com.zice.playbutton.data.local.PickedImages
 import com.zice.playbutton.data.local.SessionProvider
 import com.zice.playbutton.data.remote.ApiService
+import com.zice.playbutton.data.remote.dto.ArtistPageDto
+import com.zice.playbutton.data.remote.dto.ArtistSummaryDto
 import com.zice.playbutton.data.remote.dto.ChangePasswordRequest
 import com.zice.playbutton.data.remote.dto.FavoriteCountDto
+import com.zice.playbutton.data.remote.dto.ImageUrlDto
 import com.zice.playbutton.data.remote.dto.LoginRequest
 import com.zice.playbutton.data.remote.dto.LoginResponse
 import com.zice.playbutton.data.remote.dto.PlaylistBodyRequest
 import com.zice.playbutton.data.remote.dto.PlaylistDto
 import com.zice.playbutton.data.remote.dto.PlaylistPageDto
 import com.zice.playbutton.data.remote.dto.SignedUrlDto
+import com.zice.playbutton.data.remote.dto.SongDto
 import com.zice.playbutton.data.remote.dto.SongPageDto
 import com.zice.playbutton.data.remote.dto.SuggestionRequest
 import com.zice.playbutton.data.repo.ListKey
 import com.zice.playbutton.data.repo.PlaylistRepository
 import com.zice.playbutton.domain.PlaylistSource
 import kotlinx.coroutines.test.runTest
+import okhttp3.MultipartBody
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -42,9 +50,14 @@ class PlaylistRepositoryTest {
             return PlaylistPageDto(playlists.drop(offset).take(limit), hasMore = offset + limit < playlists.size)
         }
 
-        override suspend fun getArtists(offset: Int, limit: Int, search: String): PlaylistPageDto {
+        override suspend fun getArtists(offset: Int, limit: Int, search: String): ArtistPageDto {
             artistCalls++
-            return PlaylistPageDto(playlists.drop(offset).take(limit), hasMore = false)
+            return ArtistPageDto(
+                artists = playlists.drop(offset).take(limit).map {
+                    ArtistSummaryDto(id = it.id, name = it.name, playlistId = it.id)
+                },
+                hasMore = false,
+            )
         }
 
         override suspend fun toggleFavorite(playlistId: Int) = FavoriteCountDto(favoriteCount)
@@ -59,8 +72,11 @@ class PlaylistRepositoryTest {
 
         // El resto no interviene en estas pruebas.
         override suspend fun login(body: LoginRequest): LoginResponse = notUsed()
-        override suspend fun searchSongs(name: String?, offset: Int, limit: Int): SongPageDto = notUsed()
+        override suspend fun searchSongs(query: String?, offset: Int, limit: Int, random: Boolean): SongPageDto = notUsed()
+        override suspend fun getSong(songId: Int): SongDto = notUsed()
         override suspend fun getSignedUrl(songId: Int): SignedUrlDto = notUsed()
+        override suspend fun setPlaylistImage(playlistId: Int, image: MultipartBody.Part): ImageUrlDto = notUsed()
+        override suspend fun deletePlaylistImage(playlistId: Int): Response<Unit> = notUsed()
         override suspend fun getUserPlaylists(userId: Int, offset: Int, limit: Int, search: String) = notUsed<PlaylistPageDto>()
         override suspend fun getUserFavorites(userId: Int, offset: Int, limit: Int, search: String) = notUsed<PlaylistPageDto>()
         override suspend fun getPlaylistSongs(playlistId: Int): SongPageDto = notUsed()
@@ -77,7 +93,23 @@ class PlaylistRepositoryTest {
         override suspend fun currentUserId() = 5
     }
 
-    private fun repository(api: ApiService) = PlaylistRepository(api, session)
+    /** Apunta lo que se le manda olvidar, que es lo que interesa comprobar. */
+    private class RecordingImageCache : ImageCache {
+        val forgotten = mutableListOf<String>()
+        override fun sizeBytes() = 0L
+        override fun clear() = Unit
+        override fun forget(urls: Collection<String>) {
+            forgotten += urls
+        }
+    }
+
+    /** Aquí no se elige ninguna foto: nada llega a leerse. */
+    private val pickedImages = object : PickedImages {
+        override fun read(uri: android.net.Uri): PickedImage? = null
+    }
+
+    private fun repository(api: ApiService, imageCache: ImageCache = RecordingImageCache()) =
+        PlaylistRepository(api, session, imageCache, pickedImages)
 
     @Test
     fun `la segunda carga sale de la cache y no toca la red`() = runTest {

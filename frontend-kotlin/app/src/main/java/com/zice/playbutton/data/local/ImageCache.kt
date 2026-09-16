@@ -10,31 +10,15 @@ import javax.inject.Singleton
  * viendo vive en la de memoria, y mientras siga ahí da igual lo que se borre
  * del disco.
  *
- * No se borran portadas sueltas al quitar una descarga: una misma imagen la
- * comparten todas las canciones de un artista y sus playlists, así que borrar
- * "las de esta playlist" se llevaría por delante las de otras que siguen
- * descargadas. El tamaño ya lo acota la propia caché, que desaloja por uso.
+ * Es una interfaz por lo mismo que [SessionProvider]: quien la usa se prueba
+ * sin arrastrar un ImageLoader, que necesita un contexto de Android.
  */
-@Singleton
-class ImageCache @Inject constructor(
-    private val imageLoader: ImageLoader,
-) {
+interface ImageCache {
 
-    fun sizeBytes(): Long = imageLoader.diskCache?.size ?: 0L
+    fun sizeBytes(): Long
 
-    /**
-     * Vacía las portadas guardadas, las dos veces: en disco y en memoria.
-     *
-     * La de memoria hay que vaciarla a mano o el botón no parece hacer nada.
-     * Lo que se está viendo ya está descodificado ahí, así que se sigue
-     * pintando igual después de borrar el archivo, y encima al volver a
-     * pintarse Coil lo guarda de nuevo en disco: la caché se rehacía sola con
-     * lo que se acababa de tirar.
-     */
-    fun clear() {
-        imageLoader.diskCache?.clear()
-        imageLoader.memoryCache?.clear()
-    }
+    /** Vacía las portadas guardadas, en disco y en memoria. */
+    fun clear()
 
     /**
      * Olvida portadas que el servidor ya no sirve.
@@ -50,7 +34,37 @@ class ImageCache @Inject constructor(
      * Quien llama decide qué está muerto: aquí no se puede saber, porque una
      * misma portada la comparten las canciones de un artista con sus playlists.
      */
-    fun forget(urls: Collection<String>) {
+    fun forget(urls: Collection<String>)
+}
+
+/**
+ * La de verdad.
+ *
+ * No se borran portadas sueltas al quitar una descarga: una misma imagen la
+ * comparten todas las canciones de un artista y sus playlists, así que borrar
+ * "las de esta playlist" se llevaría por delante las de otras que siguen
+ * descargadas. El tamaño ya lo acota la propia caché, que desaloja por uso.
+ */
+@Singleton
+class CoilImageCache @Inject constructor(
+    private val imageLoader: ImageLoader,
+) : ImageCache {
+
+    override fun sizeBytes(): Long = imageLoader.diskCache?.size ?: 0L
+
+    /**
+     * La de memoria hay que vaciarla a mano o el botón no parece hacer nada.
+     * Lo que se está viendo ya está descodificado ahí, así que se sigue
+     * pintando igual después de borrar el archivo, y encima al volver a
+     * pintarse Coil lo guarda de nuevo en disco: la caché se rehacía sola con
+     * lo que se acababa de tirar.
+     */
+    override fun clear() {
+        imageLoader.diskCache?.clear()
+        imageLoader.memoryCache?.clear()
+    }
+
+    override fun forget(urls: Collection<String>) {
         if (urls.isEmpty()) return
 
         val disk = imageLoader.diskCache

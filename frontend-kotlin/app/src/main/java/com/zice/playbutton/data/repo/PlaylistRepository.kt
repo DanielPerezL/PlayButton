@@ -1,8 +1,8 @@
 package com.zice.playbutton.data.repo
 
-import android.content.Context
 import android.net.Uri
 import com.zice.playbutton.data.local.ImageCache
+import com.zice.playbutton.data.local.PickedImages
 import com.zice.playbutton.data.local.SessionProvider
 import com.zice.playbutton.data.remote.ApiService
 import com.zice.playbutton.data.remote.ServerUrl
@@ -10,7 +10,6 @@ import com.zice.playbutton.data.remote.dto.PlaylistBodyRequest
 import com.zice.playbutton.domain.Playlist
 import com.zice.playbutton.domain.PlaylistSource
 import com.zice.playbutton.domain.toDomain
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,7 +57,7 @@ class PlaylistRepository @Inject constructor(
     private val api: ApiService,
     private val sessionProvider: SessionProvider,
     private val imageCache: ImageCache,
-    @param:ApplicationContext private val context: Context,
+    private val pickedImages: PickedImages,
 ) {
     private companion object {
         const val PAGE_SIZE = 20
@@ -203,23 +202,18 @@ class PlaylistRepository @Inject constructor(
      * se corta aqui, sin gastar la subida.
      */
     suspend fun setPlaylistImage(playlistId: Int, uri: Uri): Boolean {
-        val resolver = context.contentResolver
-        val mime = resolver.getType(uri) ?: return false
-        val extension = when (mime) {
+        val picked = pickedImages.read(uri) ?: return false
+        val extension = when (picked.mime) {
             "image/jpeg" -> "jpg"
             "image/png" -> "png"
             "image/webp" -> "webp"
             else -> return false
         }
 
-        val bytes = runCatching {
-            resolver.openInputStream(uri)?.use { it.readBytes() }
-        }.getOrNull() ?: return false
-
         val part = MultipartBody.Part.createFormData(
             "image",
             "cover.$extension",
-            bytes.toRequestBody(mime.toMediaType()),
+            picked.bytes.toRequestBody(picked.mime.toMediaType()),
         )
 
         val imageUrl = ServerUrl.enforceAppScheme(
