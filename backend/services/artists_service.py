@@ -98,6 +98,7 @@ class ArtistsService:
                 raise ConflictException()
 
             artist.name = new_name
+            artist.touch_songs()
             # Arrastra el nombre a su playlist, que es lo que ve el cliente.
             ArtistsService.sync_playlist(artist)
             db.session.commit()

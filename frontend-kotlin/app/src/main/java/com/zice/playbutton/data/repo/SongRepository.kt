@@ -1,5 +1,6 @@
 package com.zice.playbutton.data.repo
 
+import com.zice.playbutton.data.local.ImageCache
 import com.zice.playbutton.data.local.db.CachedSongEntity
 import com.zice.playbutton.data.local.db.joinArtists
 import com.zice.playbutton.data.local.db.splitArtists
@@ -10,6 +11,8 @@ import com.zice.playbutton.data.remote.dto.SuggestionRequest
 import com.zice.playbutton.domain.Song
 import com.zice.playbutton.domain.toDomain
 import java.io.IOException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,6 +25,7 @@ data class SongPage(
 class SongRepository @Inject constructor(
     private val api: ApiService,
     private val songCacheDao: SongCacheDao,
+    private val imageCache: ImageCache,
 ) {
     private companion object {
         const val SEARCH_PAGE_SIZE = 50
@@ -54,6 +58,10 @@ class SongRepository @Inject constructor(
             if (cached.isEmpty()) throw error
             return cached.toSongs()
         }
+        // Qué portadas tenía antes, para saber cuáles suelta al guardar las
+        // nuevas. Se lee ahora porque `replace` reescribe las filas.
+        val previousCovers = songCacheDao.imageUrlsFor(playlistId)
+
         songCacheDao.replace(
             playlistId = playlistId,
             songs = songs.mapIndexed { index, song ->
@@ -64,10 +72,34 @@ class SongRepository @Inject constructor(
                     artists = joinArtists(song.artists),
                     position = index,
                     imageUrl = song.imageUrl,
+                    updatedAt = song.updatedAt,
                 )
             },
         )
+        forgetCoversNoLongerUsed(previousCovers)
         return songs
+    }
+
+    /**
+     * Tira las portadas que la biblioteca acaba de soltar.
+     *
+     * Es lo que hace que quitar una portada desde el panel se note en el
+     * móvil. El servidor deja de mandar su URL, pero el archivo seguía en el
+     * dispositivo y se pintaba desde ahí: las portadas se sirven con
+     * `immutable` y un año de caducidad, así que no se vuelve a preguntar por
+     * ellas, y la caché vive en `filesDir` para que el sistema no se la lleve.
+     * De ahí que la misma canción saliera con portada en la lista y sin ella
+     * en el reproductor, que arma su cola con lo recién traído del servidor.
+     *
+     * Solo se sueltan las que no quede nadie usando: la portada de un artista
+     * es también la de todas sus canciones y la de su playlist, y basta con
+     * que una siga guardada para que el archivo haga falta.
+     */
+    private suspend fun forgetCoversNoLongerUsed(previous: List<String>) {
+        if (previous.isEmpty()) return
+
+        val unused = previous.filterNot { songCacheDao.isImageInUse(it) }
+        withContext(Dispatchers.IO) { imageCache.forget(unused) }
     }
 
     private fun List<CachedSongEntity>.toSongs(): List<Song> =
@@ -79,6 +111,7 @@ class SongRepository @Inject constructor(
                 // También al releer: las filas guardadas por una version
                 // anterior llevan el `http://` que devolvia el servidor.
                 imageUrl = ServerUrl.enforceAppScheme(it.imageUrl),
+                updatedAt = it.updatedAt,
             )
         }
 
@@ -132,6 +165,37 @@ class SongRepository @Inject constructor(
      */
     suspend fun signedUrl(songId: Int): String? =
         ServerUrl.enforceAppScheme(api.getSignedUrl(songId).mp3Url)
+
+    /**
+     * Repone lo que se tenga guardado de una canción si el servidor la ha
+     * tocado desde entonces: el título, los artistas y la portada. El MP3 no,
+     * que ese no cambia nunca y por eso basta con mirar los metadatos.
+     *
+     * Lo llama el reproductor al empezar cada canción. No se hace al pedir el
+     * enlace firmado, que sería el sitio evidente, porque lo descargado y lo
+     * que ya está en la caché de audio no pasan por ahí: suenan sin gastar una
+     * llamada a la API, y son justo las que más tiempo llevan guardadas.
+     *
+     * Sin conexión no pasa nada: la petición falla y se deja lo que hubiera.
+     */
+    suspend fun refreshSongIfStale(songId: Int) {
+        // Sin nada guardado no hay nada que reponer: la canción llegará entera
+        // la próxima vez que se pida su playlist.
+        val storedAt = songCacheDao.updatedAtOf(songId) ?: return
+
+        val fresh = runCatching { api.getSong(songId).toDomain() }.getOrNull() ?: return
+        if (fresh.updatedAt <= storedAt) return
+
+        val previousCovers = songCacheDao.imageUrlsOf(songId)
+        songCacheDao.refreshSong(
+            songId = songId,
+            title = fresh.title,
+            artists = joinArtists(fresh.artists),
+            imageUrl = fresh.imageUrl,
+            updatedAt = fresh.updatedAt,
+        )
+        forgetCoversNoLongerUsed(previousCovers)
+    }
 
     suspend fun clearCache() = songCacheDao.clearAll()
 

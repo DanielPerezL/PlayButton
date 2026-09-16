@@ -130,6 +130,7 @@ class SongsService():
             song.title = new_title
             song.shown_zen = new_zen
             SongsService.sync_song_artists(song, artist_names)
+            song.touch_songs()
 
             db.session.commit()
         except AppException:

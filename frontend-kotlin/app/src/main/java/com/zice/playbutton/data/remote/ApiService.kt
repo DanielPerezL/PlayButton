@@ -10,6 +10,7 @@ import com.zice.playbutton.data.remote.dto.PlaylistBodyRequest
 import com.zice.playbutton.data.remote.dto.PlaylistDto
 import com.zice.playbutton.data.remote.dto.PlaylistPageDto
 import com.zice.playbutton.data.remote.dto.SignedUrlDto
+import com.zice.playbutton.data.remote.dto.SongDto
 import com.zice.playbutton.data.remote.dto.SongPageDto
 import com.zice.playbutton.data.remote.dto.SuggestionRequest
 import okhttp3.MultipartBody
@@ -50,6 +51,10 @@ interface ApiService {
         @Query("limit") limit: Int = 50,
         @Query("random") random: Boolean = false,
     ): SongPageDto
+
+    /** Una canción suelta, para ver si la copia guardada sigue valiendo. */
+    @GET("songs/{id}")
+    suspend fun getSong(@Path("id") songId: Int): SongDto
 
     @GET("songs/{id}/signed-url")
     suspend fun getSignedUrl(@Path("id") songId: Int): SignedUrlDto

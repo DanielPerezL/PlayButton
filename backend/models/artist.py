@@ -1,5 +1,6 @@
 from config import db
 from .image import image_relationship, image_url_of
+from .song import touch_songs
 
 
 # Tabla de asociacion entre Songs y Artists. `position` conserva el orden en
@@ -42,6 +43,13 @@ class Artist(db.Model):
 
     def __init__(self, name):
         self.name = name
+
+    def touch_songs(self):
+        """
+        Su nombre y su foto salen en el DTO de todas sus canciones, asi que
+        cambiarlos deja vieja la copia que los clientes tengan de cada una.
+        """
+        touch_songs(self.songs)
 
     def to_dto(self, current_user_id=None):
         playlist = self.playlist

@@ -22,6 +22,7 @@ import coil3.ImageLoader
 import com.zice.playbutton.MainActivity
 import com.zice.playbutton.data.local.AudioCache
 import com.zice.playbutton.data.local.SettingsStore
+import com.zice.playbutton.data.repo.SongRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -54,6 +55,7 @@ class PlaybackService : MediaSessionService() {
     @Inject lateinit var playbackQueue: PlaybackQueue
     @Inject lateinit var settingsStore: SettingsStore
     @Inject lateinit var audioCache: AudioCache
+    @Inject lateinit var songRepository: SongRepository
 
     /** El de la app, con sus portadas ya en disco. Ver [CoilBitmapLoader]. */
     @Inject lateinit var imageLoader: ImageLoader
@@ -203,6 +205,24 @@ class PlaybackService : MediaSessionService() {
         super.onDestroy()
     }
 
+    /**
+     * Pone al dia lo que haya guardado de la cancion que empieza a sonar: el
+     * titulo, los artistas y la portada, por si han cambiado en el servidor.
+     *
+     * Se hace aqui y no al pedir el enlace firmado porque lo descargado y lo
+     * que ya esta en la cache de audio suenan sin pasar por la red: ese aviso
+     * no llegaria nunca justo para las canciones que llevan mas tiempo
+     * guardadas, que son las que mas se desfasan.
+     *
+     * Va por su cuenta y sin que nadie lo espere: la cancion suena igual,
+     * haya servidor o no.
+     */
+    private fun refreshSongMetadata(songId: Int) {
+        scope.launch(Dispatchers.IO) {
+            runCatching { songRepository.refreshSongIfStale(songId) }
+        }
+    }
+
     private inner class PlayerCallback(private val player: Player) : Player.Listener {
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -225,7 +245,10 @@ class PlaybackService : MediaSessionService() {
                 return
             }
 
-            if (songId != null) lastSongId = songId
+            if (songId != null) {
+                lastSongId = songId
+                refreshSongMetadata(songId)
+            }
 
             when {
                 // El fundido de entrada ya esta en marcha: tocarlo lo cortaria.

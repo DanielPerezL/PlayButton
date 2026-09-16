@@ -425,6 +425,39 @@ def _orphan_images():
     db.session.commit()
 
 
+# ------------------------------------------- fecha de la cancion (0007)
+
+
+@step(
+    "0007_song_updated_at",
+    already_applied=lambda: not has_table("song") or has_column("song", "updated_at"),
+)
+def _song_updated_at():
+    """
+    Apunta cuando cambiaron por ultima vez los metadatos de cada cancion.
+
+    Los clientes guardan las canciones para verlas sin conexion y no tenian
+    forma de saber que su copia se habia quedado vieja: se cambiaba un titulo o
+    se quitaba una portada y seguian mostrando lo suyo hasta que caducara su
+    propia cache. Ahora lo comparan contra esto al ponerse a reproducir.
+
+    Las filas que ya existen se marcan con la hora de la migracion, que es lo
+    unico honesto: no hay registro de cuando se tocaron. Por una vez, todos los
+    clientes daran su copia por vieja y la repondran, que es justo lo que
+    conviene con las que arrastran una portada que ya no existe.
+
+    El DEFAULT es solo para rellenarlas; se quita despues para que la tabla
+    quede como la habria creado create_all, que la fecha la pone el modelo.
+    """
+    db.session.execute(text(
+        "ALTER TABLE `song` ADD COLUMN updated_at DATETIME(3) NOT NULL "
+        "DEFAULT CURRENT_TIMESTAMP(3)"
+    ))
+    db.session.execute(text(
+        "ALTER TABLE `song` ALTER COLUMN updated_at DROP DEFAULT"
+    ))
+    db.session.commit()
+
 # ------------------------------------------------------------------- registro
 
 def _ensure_registry_table():

@@ -125,6 +125,22 @@ def get_all_songs():
         SongsService.get_all(offset, limit, q, details, random)
     ), 200
 
+@app.route('/api/songs/<int:song_id>', methods=['GET'])
+@jwt_required()
+def get_song(song_id):
+    """
+    Una cancion suelta. La piden los clientes que la tienen guardada para ver
+    si su copia sigue valiendo, comparando `updated_at` con el suyo.
+
+    No vale el listado de su playlist para esto: son muchas canciones para
+    preguntar por una, y el audio descargado se escucha sin llegar a pedirla.
+    """
+    song = Song.query.get(song_id)
+    if not song:
+        raise NotFoundException()
+    return jsonify(song.to_dto()), 200
+
+
 @app.route('/api/songs/<int:song_id>/signed-url', methods=['GET'])
 @jwt_required()
 def get_song_signed_url(song_id):

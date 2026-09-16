@@ -2,6 +2,7 @@ package com.zice.playbutton.data.repo
 
 import android.content.Context
 import android.net.Uri
+import com.zice.playbutton.data.local.ImageCache
 import com.zice.playbutton.data.local.SessionProvider
 import com.zice.playbutton.data.remote.ApiService
 import com.zice.playbutton.data.remote.ServerUrl
@@ -10,12 +11,14 @@ import com.zice.playbutton.domain.Playlist
 import com.zice.playbutton.domain.PlaylistSource
 import com.zice.playbutton.domain.toDomain
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -54,6 +57,7 @@ data class CachedList(
 class PlaylistRepository @Inject constructor(
     private val api: ApiService,
     private val sessionProvider: SessionProvider,
+    private val imageCache: ImageCache,
     @param:ApplicationContext private val context: Context,
 ) {
     private companion object {
@@ -100,6 +104,11 @@ class PlaylistRepository @Inject constructor(
             if (!stillStale) return@withKeyLock
 
             val page = fetchPage(key, offset = 0)
+            // Lo que llega fresco manda tambien sobre las sueltas: `known` no
+            // caduca, asi que sin esto la cabecera del detalle seguiria
+            // pintando la portada que la playlist tuviera al crearse.
+            val fresh = page.items.associateBy { it.id }
+            known.value = known.value.mapValues { (id, playlist) -> fresh[id] ?: playlist }
             cache.value += key to CachedList(
                 items = page.items,
                 hasMore = page.hasMore,
@@ -217,6 +226,7 @@ class PlaylistRepository @Inject constructor(
             runCatching { api.setPlaylistImage(playlistId, part).imageUrl }.getOrNull(),
         ) ?: return false
 
+        forgetPreviousCover(playlistId)
         updateEverywhere(playlistId) { it.copy(imageUrl = imageUrl) }
         invalidateOwned()
         return true
@@ -226,6 +236,7 @@ class PlaylistRepository @Inject constructor(
         val ok = runCatching { api.deletePlaylistImage(playlistId).isSuccessful }
             .getOrDefault(false)
         if (ok) {
+            forgetPreviousCover(playlistId)
             updateEverywhere(playlistId) { it.copy(imageUrl = null) }
             invalidateOwned()
         }
@@ -282,6 +293,18 @@ class PlaylistRepository @Inject constructor(
         cache.value.values.firstNotNullOfOrNull { list ->
             list.items.firstOrNull { it.id == playlistId }
         } ?: known.value[playlistId]
+
+    /**
+     * Tira la portada que esta playlist tenía. Se llama con el cambio ya
+     * confirmado por el servidor, que es cuando su fila ha dejado de existir
+     * allí: cada imagen cuelga de un único dueño, así que soltarla es lo mismo
+     * que darla por muerta, y guardarla solo serviría para volver a verla
+     * dondequiera que siguiera apuntada.
+     */
+    private suspend fun forgetPreviousCover(playlistId: Int) {
+        val previous = findCached(playlistId)?.imageUrl ?: return
+        withContext(Dispatchers.IO) { imageCache.forget(listOf(previous)) }
+    }
 
     private fun updateEverywhere(playlistId: Int, transform: (Playlist) -> Playlist) {
         cache.value = cache.value.mapValues { (_, list) ->

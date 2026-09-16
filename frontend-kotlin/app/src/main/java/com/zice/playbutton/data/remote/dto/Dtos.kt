@@ -54,6 +54,11 @@ data class SongDto(
     val artists: List<ArtistDto> = emptyList(),
     /** Ya resuelta por el servidor: puede ser la del primer artista. */
     @SerialName("image_url") val imageUrl: String? = null,
+    /**
+     * Cuando cambiaron por última vez estos metadatos, en UTC y con sufijo Z.
+     * Es con lo que se sabe si la copia guardada se ha quedado vieja.
+     */
+    @SerialName("updated_at") val updatedAt: String? = null,
 )
 
 /**

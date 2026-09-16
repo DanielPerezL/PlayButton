@@ -30,6 +30,11 @@ data class CachedSongEntity(
     val artists: String,
     val position: Int,
     val imageUrl: String? = null,
+    /**
+     * Cuándo cambió por última vez en el servidor, en milisegundos. Es con lo
+     * que se decide si esta fila se ha quedado vieja. Ver [SongCacheDao.refreshSong].
+     */
+    val updatedAt: Long = 0L,
 )
 
 /**
@@ -104,6 +109,62 @@ interface SongCacheDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMeta(meta: PlaylistCacheMetaEntity)
 
+    /**
+     * Las portadas que esta playlist tiene guardadas, para poder saber cuáles
+     * suelta al revalidar contra el servidor.
+     */
+    @Query(
+        "SELECT DISTINCT imageUrl FROM cached_songs " +
+            "WHERE playlistId = :playlistId AND imageUrl IS NOT NULL",
+    )
+    suspend fun imageUrlsFor(playlistId: Int): List<String>
+
+    /**
+     * La fecha de lo guardado para esta canción, de la más nueva de las
+     * playlists donde esté. `null` si no está guardada en ninguna, que es
+     * cuando no hay nada que reponer.
+     */
+    @Query("SELECT MAX(updatedAt) FROM cached_songs WHERE songId = :songId")
+    suspend fun updatedAtOf(songId: Int): Long?
+
+    @Query(
+        "SELECT DISTINCT imageUrl FROM cached_songs " +
+            "WHERE songId = :songId AND imageUrl IS NOT NULL",
+    )
+    suspend fun imageUrlsOf(songId: Int): List<String>
+
+    /**
+     * Repone los metadatos de una canción allí donde esté guardada.
+     *
+     * Va por `songId` y no por playlist porque la misma canción está en todas
+     * las que la contengan, y lo que ha cambiado es de la canción. La posición
+     * no se toca: esa sí es de cada lista.
+     */
+    @Query(
+        "UPDATE cached_songs SET title = :title, artists = :artists, " +
+            "imageUrl = :imageUrl, updatedAt = :updatedAt WHERE songId = :songId",
+    )
+    suspend fun refreshSong(
+        songId: Int,
+        title: String,
+        artists: String,
+        imageUrl: String?,
+        updatedAt: Long,
+    )
+
+    /**
+     * Si queda algo guardado que siga apuntando a esta portada.
+     *
+     * No basta con que la suelte una canción: la imagen de un artista es la de
+     * todas sus canciones y la de su playlist, así que la misma URL aparece en
+     * muchas filas y en varias playlists a la vez.
+     */
+    @Query(
+        "SELECT EXISTS(SELECT 1 FROM cached_songs WHERE imageUrl = :url) OR " +
+            "EXISTS(SELECT 1 FROM downloaded_playlists WHERE imageUrl = :url)",
+    )
+    suspend fun isImageInUse(url: String): Boolean
+
     @Query("DELETE FROM cached_songs WHERE playlistId = :playlistId")
     suspend fun deleteSongs(playlistId: Int)
 
@@ -162,7 +223,7 @@ interface SongCacheDao {
         PlaylistCacheMetaEntity::class,
         DownloadedPlaylistEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 abstract class PlayButtonDatabase : RoomDatabase() {
@@ -194,6 +255,20 @@ abstract class PlayButtonDatabase : RoomDatabase() {
  * Nace vacia a proposito: la portada correcta la trae el servidor en la
  * siguiente revalidacion, y hasta entonces se pinta el hueco de siempre.
  */
+/**
+ * La fecha de la ultima modificacion de cada cancion, que es lo que permite
+ * saber si lo guardado sigue valiendo sin tener que pedir la playlist entera.
+ *
+ * Nace a cero, que es "no se sabe": asi la primera respuesta del servidor
+ * queda siempre por delante y repone la fila, que es justo lo que conviene con
+ * las que arrastran una portada que ya no existe.
+ */
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE cached_songs ADD COLUMN updatedAt INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
 val MIGRATION_3_4 = object : Migration(3, 4) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE cached_songs ADD COLUMN imageUrl TEXT")

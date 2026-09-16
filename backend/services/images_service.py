@@ -84,6 +84,7 @@ class ImagesService:
             db.session.flush()
 
             owner.image = image
+            owner.touch_songs()
             db.session.commit()
             return image
         except AppException:
@@ -101,6 +102,7 @@ class ImagesService:
                 return
 
             owner.image = None
+            owner.touch_songs()
             db.session.commit()
         except Exception:
             db.session.rollback()

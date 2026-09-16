@@ -4,6 +4,7 @@ import com.zice.playbutton.data.remote.ServerUrl
 import com.zice.playbutton.data.remote.dto.ArtistSummaryDto
 import com.zice.playbutton.data.remote.dto.PlaylistDto
 import com.zice.playbutton.data.remote.dto.SongDto
+import java.time.Instant
 
 /**
  * Título y artistas vienen ya separados del backend. Antes viajaban juntos en
@@ -19,6 +20,12 @@ data class Song(
     val title: String,
     val artists: List<String> = emptyList(),
     val imageUrl: String? = null,
+    /**
+     * Cuándo cambió por última vez en el servidor, en milisegundos. Cero si no
+     * se sabe: lo que viene de una versión anterior de la caché, que así queda
+     * siempre por detrás de cualquier fecha que llegue.
+     */
+    val updatedAt: Long = 0L,
 ) {
     /** Los artistas tal y como se muestran en una línea. */
     val artist: String? get() = artists.joinToString(", ").ifEmpty { null }
@@ -59,7 +66,16 @@ fun SongDto.toDomain() = Song(
     // El esquema de la portada lo pone la app, no la respuesta: el backend la
     // enlaza con `request.host_url` y tras el túnel eso sale como `http://`.
     imageUrl = ServerUrl.enforceAppScheme(imageUrl),
+    updatedAt = updatedAt.toEpochMillis(),
 )
+
+/**
+ * La fecha que manda el backend, en milisegundos. Cero si falta o no se
+ * entiende: un servidor anterior a esta versión no la envía, y darla por la
+ * más vieja posible deja las cosas como estaban, sin reponer nada a ciegas.
+ */
+private fun String?.toEpochMillis(): Long =
+    this?.let { runCatching { Instant.parse(it).toEpochMilli() }.getOrNull() } ?: 0L
 
 /**
  * El artista se presenta como la playlist que lo contiene, que es lo que se

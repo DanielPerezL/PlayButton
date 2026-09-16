@@ -2,6 +2,7 @@ package com.zice.playbutton.data.repo
 
 import com.zice.playbutton.data.local.AudioDownloads
 import com.zice.playbutton.data.local.AudioUsage
+import com.zice.playbutton.data.local.ImageCache
 import com.zice.playbutton.data.local.db.DownloadedPlaylistDao
 import com.zice.playbutton.data.local.db.DownloadedPlaylistEntity
 import com.zice.playbutton.data.local.db.SongCacheDao
@@ -41,6 +42,7 @@ class OfflineLibrary @Inject constructor(
     private val dao: DownloadedPlaylistDao,
     private val songCacheDao: SongCacheDao,
     private val audioDownloads: AudioDownloads,
+    private val imageCache: ImageCache,
 ) {
     val playlists: Flow<List<DownloadedPlaylist>> = dao.observeAll()
         .map { entities -> entities.map(DownloadedPlaylistEntity::toDomain) }
@@ -72,6 +74,12 @@ class OfflineLibrary @Inject constructor(
             dao.delete(playlist.id)
             return
         }
+
+        // Esta fila es lo unico que pinta la playlist sin conexion, asi que su
+        // portada no caduca sola: cuando el servidor manda otra —o ninguna—, a
+        // la anterior no vuelve a apuntarla nadie y se queda ocupando sitio.
+        val previous = dao.find(playlist.id)?.imageUrl
+
         dao.upsert(
             DownloadedPlaylistEntity(
                 playlistId = playlist.id,
@@ -83,6 +91,13 @@ class OfflineLibrary @Inject constructor(
                 imageUrl = playlist.imageUrl,
             ),
         )
+
+        if (previous != null &&
+            previous != playlist.imageUrl &&
+            !songCacheDao.isImageInUse(previous)
+        ) {
+            withContext(Dispatchers.IO) { imageCache.forget(listOf(previous)) }
+        }
     }
 
     /**

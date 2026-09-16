@@ -55,6 +55,13 @@ class Playlist(db.Model):
         self.is_public = is_public
         self.artist = artist
 
+    def touch_songs(self):
+        """
+        Su portada es suya y no sale en el DTO de ninguna cancion, asi que
+        cambiarla no deja vieja la copia de nada. La de una playlist de artista
+        es la del artista, y esa se cambia en el artista.
+        """
+
     @property
     def is_artist_playlist(self):
         return self.artist_id is not None
