@@ -12,6 +12,9 @@ import com.zice.playbutton.domain.Song
 import com.zice.playbutton.domain.toDomain
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -27,6 +30,17 @@ class SongRepository @Inject constructor(
     private val songCacheDao: SongCacheDao,
     private val imageCache: ImageCache,
 ) {
+    private val _refreshed = MutableSharedFlow<Song>(extraBufferCapacity = 16)
+
+    /**
+     * Canciones que se acaban de reponer, para quien ya las tenga pintadas.
+     *
+     * Hace falta porque lo repuesto va a la caché de disco, y una pantalla ya
+     * abierta no vuelve a mirarla: se quedaba con el título y la portada con
+     * los que entró.
+     */
+    val refreshed: SharedFlow<Song> = _refreshed.asSharedFlow()
+
     private companion object {
         const val SEARCH_PAGE_SIZE = 50
         const val ZEN_BATCH_SIZE = 10
@@ -177,14 +191,17 @@ class SongRepository @Inject constructor(
      * llamada a la API, y son justo las que más tiempo llevan guardadas.
      *
      * Sin conexión no pasa nada: la petición falla y se deja lo que hubiera.
+     *
+     * Devuelve la canción repuesta, o `null` si no había nada que reponer. Y
+     * la anuncia por [refreshed], para lo que ya esté pintado.
      */
-    suspend fun refreshSongIfStale(songId: Int) {
+    suspend fun refreshSongIfStale(songId: Int): Song? {
         // Sin nada guardado no hay nada que reponer: la canción llegará entera
         // la próxima vez que se pida su playlist.
-        val storedAt = songCacheDao.updatedAtOf(songId) ?: return
+        val storedAt = songCacheDao.updatedAtOf(songId) ?: return null
 
-        val fresh = runCatching { api.getSong(songId).toDomain() }.getOrNull() ?: return
-        if (fresh.updatedAt <= storedAt) return
+        val fresh = runCatching { api.getSong(songId).toDomain() }.getOrNull() ?: return null
+        if (fresh.updatedAt <= storedAt) return null
 
         val previousCovers = songCacheDao.imageUrlsOf(songId)
         songCacheDao.refreshSong(
@@ -195,6 +212,8 @@ class SongRepository @Inject constructor(
             updatedAt = fresh.updatedAt,
         )
         forgetCoversNoLongerUsed(previousCovers)
+        _refreshed.emit(fresh)
+        return fresh
     }
 
     suspend fun clearCache() = songCacheDao.clearAll()

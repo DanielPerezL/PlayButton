@@ -122,6 +122,19 @@ class PlaylistDetailViewModel @Inject constructor(
                 }
             }
         }
+
+        // Lo que se repone mientras suena algo. La lista se pintó al entrar y
+        // no vuelve a mirar la caché, así que sin esto la fila se quedaría con
+        // el título y la portada de entonces hasta salir y volver.
+        viewModelScope.launch {
+            songRepository.refreshed.collect { song ->
+                val state = _uiState.value
+                if (state.songs.none { it.id == song.id }) return@collect
+                _uiState.value = state.copy(
+                    songs = state.songs.map { if (it.id == song.id) song else it },
+                )
+            }
+        }
     }
 
     /**

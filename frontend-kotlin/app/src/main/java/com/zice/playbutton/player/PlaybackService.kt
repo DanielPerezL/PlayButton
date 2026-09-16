@@ -23,6 +23,7 @@ import com.zice.playbutton.MainActivity
 import com.zice.playbutton.data.local.AudioCache
 import com.zice.playbutton.data.local.SettingsStore
 import com.zice.playbutton.data.repo.SongRepository
+import com.zice.playbutton.domain.Song
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +31,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
@@ -219,7 +221,31 @@ class PlaybackService : MediaSessionService() {
      */
     private fun refreshSongMetadata(songId: Int) {
         scope.launch(Dispatchers.IO) {
-            runCatching { songRepository.refreshSongIfStale(songId) }
+            val fresh = runCatching { songRepository.refreshSongIfStale(songId) }
+                .getOrNull() ?: return@launch
+            withContext(Dispatchers.Main) { replaceQueueMetadata(fresh) }
+        }
+    }
+
+    /**
+     * Cambia en la cola los metadatos de una cancion que se acaba de reponer.
+     *
+     * La notificacion, la pantalla de bloqueo y el minirreproductor leen de la
+     * sesion, no de la cache: sin esto se quedaban con la portada de antes
+     * hasta rehacer la cola, aunque ya se supiera que habia cambiado.
+     *
+     * No corta la reproduccion: el URI es el mismo `playbutton://song/{id}` y
+     * solo cambian los metadatos, que es justo el caso en el que Media3 sigue
+     * sonando sin enterarse. Se recorre la cola entera porque una playlist
+     * puede llevar la misma cancion mas de una vez.
+     */
+    private fun replaceQueueMetadata(song: Song) {
+        val player = exoPlayer ?: return
+        val mediaId = song.id.toString()
+        for (index in 0 until player.mediaItemCount) {
+            if (player.getMediaItemAt(index).mediaId == mediaId) {
+                player.replaceMediaItem(index, MediaItems.from(song, artworkUri))
+            }
         }
     }
 
