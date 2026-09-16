@@ -6,10 +6,23 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from sqlalchemy.exc import OperationalError
 from itsdangerous import TimestampSigner
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 
 # Inicializar Flask, SQLAlchemy y JWT
 app = Flask(__name__, static_folder='./static')
+
+# Detras del tunel la peticion llega al backend por HTTP aunque el navegador la
+# hiciera por HTTPS, asi que `request.host_url` devolvia http:// y con ella
+# salian las URL de portadas y MP3. En una pagina servida por HTTPS eso es
+# contenido mixto: el <img> de una portada colaba por ser pasivo, pero bajarla
+# con fetch —que es lo que hace el cliente web desde que las portadas piden
+# token— cuenta como activo y el navegador lo bloquea.
+#
+# Con esto Flask lee el esquema de X-Forwarded-Proto, que es lo que pone
+# cloudflared. Sin nada delante no llega esa cabecera y se queda el esquema
+# real, asi que un despliegue en HTTP por la red local sigue igual.
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1)
 
 CORS_ENABLED = os.environ['CORS_ENABLED'].lower() == 'true'
 if CORS_ENABLED:
