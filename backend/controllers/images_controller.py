@@ -12,14 +12,24 @@ from utils import check_is_admin, get_user_from_token, has_permission
 # cliente la pinte al momento: como cada cambio crea una fila, la URL anterior
 # ya no vale y no hay endpoint para consultar un recurso suelto.
 @app.route('/uploads/images/<int:image_id>', methods=['GET'])
+@jwt_required()
 def get_image(image_id):
     """
-    Sin JWT y cacheable para siempre.
+    Con el mismo token que el resto de la API, y cacheable para siempre.
 
-    No usa el enlace firmado de los MP3 a propósito: esas firmas caducan a los
-    seis minutos y anularían cualquier caché, y un <img> del navegador no puede
-    mandar la cabecera Authorization. Como una fila de `image` no se modifica
-    nunca, cambiar la portada cambia la URL y la caché se invalida sola.
+    Estuvo abierta porque un <img> del navegador no puede mandar la cabecera
+    Authorization, pero los id son correlativos: sin token bastaba con
+    recorrerlos para bajarse todas las portadas de la biblioteca. Ahora son los
+    clientes los que las piden por su cuenta con la cabecera puesta y las
+    pintan desde memoria.
+
+    Tampoco vale el enlace firmado de los MP3: esas firmas caducan a los seis
+    minutos y anularían cualquier caché. La de aquí sigue siendo eterna porque
+    una fila de `image` no se modifica nunca, así que cambiar la portada cambia
+    la URL y la caché se invalida sola.
+
+    `private` en vez de `public` porque la respuesta ya depende de quién la
+    pide: no debe quedarse en cachés compartidas por el camino.
     """
     image = Image.query.get(image_id)
     if not image:
@@ -27,7 +37,7 @@ def get_image(image_id):
 
     response = make_response(image.data)
     response.headers["Content-Type"] = image.mime
-    response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    response.headers["Cache-Control"] = "private, max-age=31536000, immutable"
     response.set_etag(str(image.id))
     return response.make_conditional(request)
 

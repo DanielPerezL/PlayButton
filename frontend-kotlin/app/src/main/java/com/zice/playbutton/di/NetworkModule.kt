@@ -86,19 +86,26 @@ object NetworkModule {
     fun provideApiService(retrofit: Retrofit): ApiService = retrofit.create(ApiService::class.java)
 
     /**
-     * Cliente aparte para las portadas, sin los interceptores de la API.
+     * Cliente aparte para las portadas, con el token pero sin lo demas.
      *
-     * No puede compartir el de Retrofit: [BaseUrlInterceptor] antepone el
-     * prefijo de la URL base a la ruta de cada peticion, y convertiria
-     * `/uploads/images/1` en `/api/uploads/images/1`. Las URL de las portadas
-     * ya vienen absolutas y completas del servidor, asi que no hay nada que
-     * reescribir. Tampoco interesa que [AuthInterceptor] lea un 401 de una
-     * imagen como sesion caducada: el endpoint no pide token.
+     * [AuthInterceptor] si hace falta: el endpoint de portadas pide el mismo
+     * token que el resto de la API, y sin la cabecera todas responderian 401.
+     * Un 401 de aqui significa ademas lo mismo que en cualquier otra peticion,
+     * asi que cerrar la sesion al verlo es lo correcto.
+     *
+     * Lo que no puede llevar es [BaseUrlInterceptor], y por eso este cliente no
+     * es el de Retrofit: antepone el prefijo de la URL base a la ruta de cada
+     * peticion, y convertiria `/uploads/images/1` en `/api/uploads/images/1`.
+     * Las URL de las portadas ya vienen absolutas y completas del servidor, asi
+     * que no hay nada que reescribir.
      */
     @Provides
     @Singleton
     @ImageHttpClient
-    fun provideImageOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
+    fun provideImageOkHttpClient(
+        authInterceptor: AuthInterceptor,
+    ): OkHttpClient = OkHttpClient.Builder()
+        .addInterceptor(authInterceptor)
         .connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(20, TimeUnit.SECONDS)
         .build()

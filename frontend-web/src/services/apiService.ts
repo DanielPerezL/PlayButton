@@ -296,6 +296,30 @@ const throwIfFailed = async (response: Response | null, accion: string) => {
   }
 };
 
+/**
+ * Baja una portada con el token puesto. El endpoint lo pide como el resto de
+ * la API, así que su URL ya no se puede colgar de un `<img>` sin más: la
+ * etiqueta no manda cabeceras.
+ *
+ * No pasa por `customFetch` a propósito. Que una portada no llegue no es
+ * motivo para cerrar la sesión —el hueco de la imagen se queda vacío y ya—, y
+ * de un token caducado se entera igualmente la petición de datos de la página.
+ */
+export const fetchCover = async (url: string): Promise<Blob | null> => {
+  const token = getToken();
+  if (!token) return null;
+
+  try {
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.ok ? await response.blob() : null;
+  } catch (error) {
+    console.error("Error al descargar la portada:", error);
+    return null;
+  }
+};
+
 const customFetch = async (url: string, options: RequestInit = {}) => {
   if (!isLoggedIn()) {
     return null;
