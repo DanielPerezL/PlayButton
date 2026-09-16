@@ -46,8 +46,12 @@ class CoilBitmapLoader(
     /**
      * Decodificar bytes que ya vienen dados no tiene nada que ver con las
      * cachés, así que eso se queda en manos del cargador de serie.
+     *
+     * Por el Builder, que es lo que queda: los constructores de
+     * DataSourceBitmapLoader están todos obsoletos. Sin nada que ajustarle,
+     * monta lo mismo que ponía el de un solo argumento.
      */
-    private val decoder = DataSourceBitmapLoader(this.context)
+    private val decoder = DataSourceBitmapLoader.Builder(this.context).build()
 
     override fun supportsMimeType(mimeType: String): Boolean =
         decoder.supportsMimeType(mimeType)
