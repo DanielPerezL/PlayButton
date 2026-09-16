@@ -5,7 +5,7 @@ import { parseArtists } from "../services/songName";
 import ArtistsField from "./ArtistsField";
 import CoverField from "./CoverField";
 import { toast } from "react-toastify";
-import { Popover } from "bootstrap";
+import Popover from "bootstrap/js/dist/popover";
 import HelpPopover from "./HelpPopover";
 import { getNormalizeHelp, getZenModeHelp } from "../services/utils";
 import LoadingButton from "./LoadingButton";

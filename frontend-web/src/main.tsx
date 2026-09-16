@@ -6,8 +6,6 @@ import { createRoot } from "react-dom/client";
 // en ese orden. No añadir más imports de CSS aquí ni en los componentes.
 import "./styles/main.scss";
 
-import "bootstrap/dist/js/bootstrap.bundle.min.js";
-
 import App from "./App.tsx";
 
 createRoot(document.getElementById("root")!).render(

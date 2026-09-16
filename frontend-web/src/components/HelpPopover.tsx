@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { Popover } from "bootstrap";
+import Popover from "bootstrap/js/dist/popover";
 
 interface HelpPopoverProps {
   content: string;
