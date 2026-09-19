@@ -209,6 +209,14 @@ class PlaylistDownloader @Inject constructor(
                         // Solo interesa que quede en disco: nadie la va a
                         // pintar ahora mismo y ocuparia memoria para nada.
                         .memoryCachePolicy(CachePolicy.DISABLED)
+                        // Y por lo mismo se pide lo mas pequeno que se pueda
+                        // decodificar. El fichero se guarda en disco tal como
+                        // llega de la red, antes de decodificar nada, asi que
+                        // el bitmap que sale de aqui no lo mira nadie: sin
+                        // pedir tamano se construian enteras una detras de
+                        // otra, tantas veces como portadas distintas tenga la
+                        // playlist.
+                        .size(1)
                         .build(),
                 )
             }

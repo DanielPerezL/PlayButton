@@ -22,6 +22,18 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 /**
+ * Lado, en píxeles, al que se decodifica la portada de la notificación.
+ *
+ * Sin pedir tamaño, Coil la decodifica tal cual viene del servidor, que pueden
+ * ser varios miles de píxeles de lado. Ese bitmap cruza por IPC hasta SystemUI
+ * para acabar pintado, como mucho, al ancho de la pantalla, así que lo que
+ * sobra es memoria gastada en las dos puntas. Con 512 llega para la
+ * notificación, la pantalla de bloqueo y el coche, y el fichero original sigue
+ * entero en la caché de disco para cuando haga falta más grande.
+ */
+private const val ARTWORK_PX = 512
+
+/**
  * La portada de la notificación, resuelta con el mismo Coil que pinta la app.
  *
  * El cargador que Media3 trae de serie abre la URI de la carátula por HTTP y
@@ -74,6 +86,7 @@ class CoilBitmapLoader(
                         // notificación, y uno de hardware no se puede leer
                         // fuera de la GPU.
                         .allowHardware(false)
+                        .size(ARTWORK_PX)
                         .build(),
                 )
                 when (result) {
