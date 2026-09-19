@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
@@ -336,11 +337,24 @@ fun PlayerScreen(
         // siguientes y subiendo se ve de dónde viene.
         val queueListState = rememberLazyListState()
         LaunchedEffect(queueVisible) {
-            if (queueVisible && state.queue.isNotEmpty()) {
-                queueListState.scrollToItem(
-                    state.currentIndex.coerceIn(0, state.queue.lastIndex),
-                )
+            if (queueVisible) queueListState.scrollToCurrent(state)
+        }
+
+        // Saltar a una canción de la cola recorta la lista por delante —solo se
+        // guardan tres ya escuchadas—, así que la fila pulsada cambia de sitio
+        // y la lista parecía haberse movido sola a otra parte de la cola. Se
+        // recoloca igual que al abrirla, con lo pulsado arriba del todo.
+        //
+        // En el toque no se puede: la orden sale por la sesión de medios y el
+        // estado no vuelve hasta el siguiente ciclo, así que se apunta a qué
+        // canción se va y se recoloca cuando de verdad esté sonando.
+        var pendingSongId by remember { mutableStateOf<Int?>(null) }
+        LaunchedEffect(pendingSongId, state.songId, state.currentIndex) {
+            if (pendingSongId == null || state.songId != pendingSongId) {
+                return@LaunchedEffect
             }
+            queueListState.scrollToCurrent(state)
+            pendingSongId = null
         }
 
         // La cola se queda con el hueco que sobra de la pantalla, y hay que
@@ -370,7 +384,10 @@ fun PlayerScreen(
                             )
                             // El sitio real en el reproductor, no el de esta
                             // lista: lo escuchado se enseña recortado.
-                            .clickable { onQueueItemClick(entry.index) }
+                            .clickable {
+                                pendingSongId = entry.songId
+                                onQueueItemClick(entry.index)
+                            }
                             .padding(horizontal = 10.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -401,4 +418,13 @@ fun PlayerScreen(
             }
         }
     }
+}
+
+/**
+ * Coloca la cola en lo que suena: pasa a ser la primera fila a la vista y lo ya
+ * escuchado se queda justo encima, para subir a por ello si hace falta.
+ */
+private suspend fun LazyListState.scrollToCurrent(state: PlayerState) {
+    if (state.queue.isEmpty()) return
+    scrollToItem(state.currentIndex.coerceIn(0, state.queue.lastIndex))
 }
