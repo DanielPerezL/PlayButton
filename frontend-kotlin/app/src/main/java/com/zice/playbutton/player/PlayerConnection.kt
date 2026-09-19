@@ -194,6 +194,11 @@ class PlayerConnection @Inject constructor(
 
     private fun syncState() {
         val player = controller ?: return
+        // Lo que se pidio ya esta aqui. Recogerlo es cosa de este sitio y no
+        // de quien lo pidio: el aviso es lo unico que sostiene el reproductor
+        // en pantalla mientras no hay cancion, asi que no puede apagarse hasta
+        // que la haya. Ver [playZen].
+        if (preparing && player.currentMediaItem != null) preparing = false
         val metadata = player.mediaMetadata
         val queue = currentQueue(player)
         _state.value = PlayerState(
@@ -275,14 +280,19 @@ class PlayerConnection @Inject constructor(
         // capa se cerraba sola justo despues de abrirse.
         setPreparing(true)
         scope.launch {
-            try {
-                val songs = runCatching { songRepository.zenBatch() }.getOrDefault(emptyList())
-                if (songs.isNotEmpty()) setQueue(QueueBuilder.shuffled(songs))
-            } finally {
-                // Si no ha venido nada, esto es tambien lo que recoge el
-                // reproductor en lugar de dejarlo cargando para siempre.
-                setPreparing(false)
-            }
+            val songs = runCatching { songRepository.zenBatch() }.getOrDefault(emptyList())
+            // Darle la cola al reproductor no es que ya la tenga: las ordenes
+            // viajan por la sesion de medios y su estado no vuelve hasta el
+            // siguiente ciclo. Apagando el aviso aqui quedaba un instante sin
+            // cancion y sin nada en camino, que para la interfaz es un
+            // reproductor que no hay que enseñar: la capa se cerraba y se
+            // volvia a abrir de golpe. Solo se veia la primera vez, porque a
+            // partir de la segunda la cancion anterior tapa ese hueco.
+            val queued = songs.isNotEmpty() && setQueue(QueueBuilder.shuffled(songs))
+            // Si no ha venido nada, o no hay con quien hablar, no habra
+            // cancion que lo recoja y es aqui donde hay que hacerlo, en lugar
+            // de dejar el reproductor cargando para siempre.
+            if (!queued) setPreparing(false)
         }
     }
 
@@ -292,11 +302,13 @@ class PlayerConnection @Inject constructor(
         _state.value = _state.value.copy(isPreparing = value)
     }
 
-    private fun setQueue(songs: List<Song>) {
-        val player = controller ?: return
+    /** Devuelve si habia con quien hablar; sin servicio no se ha puesto nada. */
+    private fun setQueue(songs: List<Song>): Boolean {
+        val player = controller ?: return false
         player.setMediaItems(songs.map { MediaItems.from(it, artworkUri) })
         player.prepare()
         player.play()
+        return true
     }
 
     // Estas órdenes salen por la sesión de medios y las atiende
