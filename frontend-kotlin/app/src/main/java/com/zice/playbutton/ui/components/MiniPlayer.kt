@@ -6,10 +6,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -57,7 +62,13 @@ fun MiniPlayer(
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .clickable(onClick = onExpand)
-            .semantics { contentDescription = expandLabel },
+            .semantics { contentDescription = expandLabel }
+            // Detras del fondo, para que el color siga llegando al borde y sea
+            // solo el contenido el que se aparta: de lado, la muesca y la
+            // barra de gestos caen justo encima del titulo y de los botones.
+            .windowInsetsPadding(
+                WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal),
+            ),
     ) {
         LinearProgressIndicator(
             progress = { progress },

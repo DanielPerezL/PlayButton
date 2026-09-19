@@ -8,8 +8,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -228,10 +233,18 @@ fun PlayButtonApp(
     ) { innerPadding ->
         PlayButtonNavHost(
             navController = navController,
-            modifier = Modifier.padding(
-                top = innerPadding.calculateTopPadding(),
-                bottom = 0.dp,
-            ),
+            // Del hueco que calcula el Scaffold solo se coge el de arriba:
+            // el de abajo lo reparte cada destino segun lleve boton o no. Los
+            // lados no los daba nadie, y son los que se comen la muesca y la
+            // barra de gestos cuando la ventana no ocupa la pantalla entera.
+            modifier = Modifier
+                .padding(
+                    top = innerPadding.calculateTopPadding(),
+                    bottom = 0.dp,
+                )
+                .windowInsetsPadding(
+                    WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal),
+                ),
             bottomInset = innerPadding.calculateBottomPadding(),
         )
     }
