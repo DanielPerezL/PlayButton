@@ -44,13 +44,15 @@ class Song(db.Model):
         La imagen que se muestra. Si la cancion no tiene la suya se usa la del
         primer artista, que es lo que evita una biblioteca entera de huecos
         grises por tener que subir una portada cancion a cancion.
+
+        Solo la del primero, que es el principal: la cancion se reconoce por
+        el, y no por el colaborador que resulte ser el primero con foto.
+        `artists` viene ordenado por `song_artist.position`, asi que el primero
+        es el que se escribio primero.
         """
         if self.image is not None:
             return self.image
-        for artist in self.artists:
-            if artist.image is not None:
-                return artist.image
-        return None
+        return self.artists[0].image if self.artists else None
 
     def to_dto(self):
         return {
