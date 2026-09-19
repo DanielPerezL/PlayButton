@@ -1,6 +1,8 @@
 package com.zice.playbutton
 
 import android.Manifest
+import android.annotation.SuppressLint
+import android.content.pm.ActivityInfo
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -28,10 +30,23 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var playerConnection: PlayerConnection
     @Inject lateinit var playerVisibility: PlayerVisibility
 
+    // El lint da por hecho que atar la orientacion es cosa de no haberse
+    // preparado para girar. Aqui es al reves: la app se reparte sola el hueco
+    // que tenga, y en un movil se deja de pie porque es como se usa.
+    @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+
+        // Aqui y no en el manifest: alli la restriccion vale para todos los
+        // aparatos por igual, y lo que se quiere es que dependa del sitio que
+        // haya. El recurso lo resuelve el sistema por el ancho menor de la
+        // pantalla, asi que en tablet y en plegable abierto sale false y la
+        // app gira.
+        if (resources.getBoolean(R.bool.lock_portrait)) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
 
         var sessionResolved = false
         // La pantalla de arranque se mantiene hasta saber si hay sesión, para no

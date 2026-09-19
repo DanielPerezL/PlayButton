@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      En un movil la app se queda de pie. Tumbado no cabe gran cosa y no es
+      como se usa: se lleva en la mano, y el reproductor y los listados estan
+      pensados para leerse en vertical.
+
+      Se decide aqui, por el ancho menor de la pantalla, y no con
+      screenOrientation en el manifest: aquel valia para todos los aparatos por
+      igual, y en una tablet no hay motivo para bloquear nada. Android 16
+      ignora esa restriccion en pantallas grandes precisamente por eso, pero
+      solo desde la 16, y esto vale tambien para las de antes.
+    -->
+    <bool name="lock_portrait">true</bool>
+</resources>

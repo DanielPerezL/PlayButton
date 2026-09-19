@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      De 600dp de ancho menor en adelante —tablets y plegables abiertos— la app
+      gira con el aparato. Ahi sobra sitio en las dos orientaciones y el
+      reproductor ya se reparte segun el hueco que tenga.
+    -->
+    <bool name="lock_portrait">false</bool>
+</resources>
