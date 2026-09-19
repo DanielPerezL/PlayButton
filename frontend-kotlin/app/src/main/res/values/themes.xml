@@ -16,9 +16,13 @@
         <item name="postSplashScreenTheme">@style/Theme.PlayButton</item>
     </style>
 
+    <!--
+      Las barras no se tinen desde aqui: android:statusBarColor y
+      android:navigationBarColor estan obsoletos desde API 35, y ademas
+      sobraban. Hasta la 34 las deja transparentes enableEdgeToEdge() al
+      arrancar la actividad, y de la 35 en adelante ya lo son de serie.
+    -->
     <style name="Theme.PlayButton" parent="android:Theme.Material.NoActionBar">
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowBackground">@color/surface_0</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
